@@ -206,7 +206,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     private boolean hasWork() {
-        if (this.getTask() != null) {
+        if (this.getTask() != null && sideItemHandler.getStackInSlot(1).getCount() != 64) {
             return true;
         }
 
@@ -237,7 +237,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
         matchWork();
-        if(getTask() != null) {
+        if(getTask() != null && sideItemHandler.getStackInSlot(1).getCount() != 64) {
             getMainNode().ifPresent(grid -> {
                 IEnergyService eg = grid.getEnergyService();
                 IEnergySource src = this;
