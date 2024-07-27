@@ -167,7 +167,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
                         ItemStack stack = inventory.getStackInSlot(i);
                         if(stack.getItem() != Items.AIR) {
                             Item item = recipe.nextStage(stack);
-                            if(r.nextInt(15) == 0 && !recipe.isFlawless(stack)) {
+                            if(r.nextInt(12) == 0 && !recipe.isFlawless(stack)) {
                                 inventory.getStackInSlot(i).shrink(1);
                                 if(item != Items.AIR && i != 2) {
                                     inventory.setItemDirect(i + 1, new ItemStack(item));
