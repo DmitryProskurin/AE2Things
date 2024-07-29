@@ -67,7 +67,7 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
     }
 
     public ResourceLocation getRecipeId() {
-        return AE2Things.id("tools/" + Objects.requireNonNull(getRegistryName()).getPath());
+        return AE2Things.id("portable/" + Objects.requireNonNull(getRegistryName()).getPath());
     }
 
     @Override

@@ -18,7 +18,7 @@ public class DISKCellHandler implements ICellHandler {
 
     @Override
     public boolean isCell(ItemStack is) {
-        return is.getItem() instanceof DISKDrive;
+        return is.getItem() instanceof IDISKCellItem;
     }
 
     @Override

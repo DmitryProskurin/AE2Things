@@ -1,10 +1,6 @@
 package io.github.projectet.ae2things.gui.crystalGrowth;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.blockentity.misc.InscriberRecipes;
-import appeng.core.definitions.AEItems;
-import appeng.core.definitions.ItemDefinition;
-import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
 import appeng.menu.implementations.MenuTypeBuilder;
 import appeng.menu.implementations.UpgradeableMenu;
@@ -12,12 +8,9 @@ import appeng.menu.interfaces.IProgressProvider;
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.block.entity.BECrystalGrowth;
 import io.github.projectet.ae2things.inventory.CrystalGrowthSlot;
-import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class CrystalGrowthMenu extends UpgradeableMenu<BECrystalGrowth> {

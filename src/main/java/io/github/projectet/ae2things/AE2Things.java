@@ -1,6 +1,9 @@
 package io.github.projectet.ae2things;
 
 import appeng.api.IAEAddonEntrypoint;
+import appeng.api.config.RedstoneMode;
+import appeng.api.config.Setting;
+import appeng.api.config.Settings;
 import appeng.api.storage.StorageCells;
 import appeng.api.upgrades.Upgrades;
 import appeng.block.AEBaseBlockItem;
