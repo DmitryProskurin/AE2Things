@@ -102,88 +102,71 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         }
         return !cachedRecipes.isEmpty();
     }
-
-    private boolean outputhasItem() {
+    private int howManyFull() {
+        int full = 0;
         for (InternalInventory inv: progress.keySet()) {
-            if(inv.getStackInSlot(3).getItem() != Items.AIR) {
-                return false;
+            if(inv.getStackInSlot(3).getCount() == 64) {
+                full++;
             }
         }
-        return true;
-    }
-    private boolean outputIsFull() {
-        for (InternalInventory inv: progress.keySet()) {
-            if(inv.getStackInSlot(3).getCount() != 64) {
-                return false;
-            }
-        }
-        return true;
+        return full;
     }
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
         if (isWorking()) {
-            final int speedFactor = 1 + this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD);
-            final IEnergyService[] eg = new IEnergyService[1];
-            IEnergySource src = this;
-            getMainNode().ifPresent(iGrid -> eg[0] = iGrid.getEnergyService());
-            if (eg[0] == null) {
-                return TickRateModulation.IDLE;
-            }
-
-            final int powerConsumption = 10 * speedFactor * cachedRecipes.size();
-            final double powerThreshold = powerConsumption - 0.01;
-            double powerReq = this.extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
-            if (powerReq <= powerThreshold) {
-                src = eg[0];
-                powerReq = eg[0].extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
-            }
-
-            if (powerReq > powerThreshold) {
-                if (!isWorking()) {
-                    isWorking = true;
-                    markForUpdate();
+            getMainNode().ifPresent(iGrid -> {
+                int speedFactor = 1 + this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD);
+                IEnergyService eg = iGrid.getEnergyService();
+                IEnergySource src = this;
+                final int powerConsumption = 10 * speedFactor * (cachedRecipes.size() - howManyFull());
+                final double powerThreshold = powerConsumption - 0.01;
+                double powerReq = this.extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
+                if (powerReq <= powerThreshold) {
+                    src = eg;
+                    powerReq = eg.extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
                 }
-                src.extractAEPower(powerConsumption, Actionable.MODULATE, PowerMultiplier.CONFIG);
-                cachedRecipes.forEach((inventory, recipe) -> {
-                    if(recipe != null) {
-                        int d = progress.get(inventory);
-                        if(d >= 100) {
-                            ItemStack resultItem = recipe.getResultItem(RegistryAccess.EMPTY);
-                            if(inventory.insertItem(3, resultItem, true).getCount() != 0)
-                                return;
-                            int i = 2;
-                            while(inventory.getStackInSlot(i).getItem() == Items.AIR && i >= 1) {
-                                i--;
-                            }
-                            ItemStack stack = inventory.getStackInSlot(i);
-                            if(stack.getItem() != Items.AIR) {
-                                Item item = recipe.nextStage(stack);
-                                if(r.nextInt(12) == 0 && !recipe.isFlawless(stack)) {
-                                    inventory.getStackInSlot(i).shrink(1);
-                                    if(item != Items.AIR && i != 2) {
-                                        inventory.setItemDirect(i + 1, new ItemStack(item));
-                                    }
-                                    else
-                                        inventory.getStackInSlot(i + 1).grow(1);
-                                }
-                            }
-                            inventory.insertItem(3, resultItem, false);
-                            progress.put(inventory, 0);
-                            saveChanges();
-                        }
-                        else {
-                            progress.put(inventory, d + speedFactor);
-                        }
+                if(powerReq > powerThreshold) {
+                    if(!isWorking()) {
+                        isWorking = true;
+                        markForUpdate();
                     }
-                });
-            } else {
-                if (isWorking()) {
-                    isWorking = false;
-                    this.markForUpdate();
+                    src.extractAEPower(powerConsumption, Actionable.MODULATE, PowerMultiplier.CONFIG);
+                    cachedRecipes.forEach((inventory, recipe) -> {
+                        if(recipe != null) {
+                            int d = progress.get(inventory);
+                            if(d >= 100) {
+                                ItemStack resultItem = recipe.getResultItem(RegistryAccess.EMPTY);
+                                if(inventory.insertItem(3, resultItem, true).getCount() != 0)
+                                    return;
+                                int i = 2;
+                                while(inventory.getStackInSlot(i).getItem() == Items.AIR && i >= 1) {
+                                    i--;
+                                }
+                                ItemStack stack = inventory.getStackInSlot(i);
+                                if(stack.getItem() != Items.AIR) {
+                                    Item item = recipe.nextStage(stack);
+                                    if(r.nextInt(12) == 0 && !recipe.isFlawless(stack)) {
+                                        inventory.getStackInSlot(i).shrink(1);
+                                        if(item != Items.AIR && i != 2) {
+                                            inventory.setItemDirect(i + 1, new ItemStack(item));
+                                        }
+                                        else
+                                            inventory.getStackInSlot(i + 1).grow(1);
+                                    }
+                                }
+                                inventory.insertItem(3, resultItem, false);
+                                progress.put(inventory, 0);
+                                saveChanges();
+                            }
+                            else {
+                                if(inventory.getStackInSlot(3).getCount() != 64)
+                                    progress.put(inventory, d + speedFactor);
+                            }
+                        }
+                    });
                 }
-                return TickRateModulation.SLEEP;
-            }
+            });
         }
         clearEmptyCache();
         matchWork();
@@ -199,6 +182,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     private void clearEmptyCache() {
         for (InternalInventory inv: toRemove) {
             cachedRecipes.remove(inv);
+            progress.put(inv, 0);
         }
         toRemove.clear();
     }
@@ -300,6 +284,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         CrystalGrowthRecipe recipe = CrystalGrowthRecipe.getRecipefromStack(this.level, inv.getStackInSlot(slot));
         if(cachedRecipes.get(inv) != recipe && recipe != null) {
             cachedRecipes.put(inv, recipe);
+            progress.put(inv, 0);
         }
         else if(!hasIngredients(inv)) {
             toRemove.add(inv);
