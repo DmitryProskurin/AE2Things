@@ -37,6 +37,11 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     @GuiSync(3)
     public int processingTime = -1;
 
+    @GuiSync(7)
+    public boolean topLock;
+    @GuiSync(8)
+    public boolean botLock;
+
     public AdvancedInscriberMenu(int syncId, Inventory playerInventory, BEAdvancedInscriber advancedInscriber) {
         super(ADVANCED_INSCRIBER_SHT, syncId, playerInventory, advancedInscriber);
         world = playerInventory.player.level;
@@ -55,6 +60,9 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
 
         var output = new OutputSlot(inventory, 3, null);
         this.addSlot(output, SlotSemantics.MACHINE_OUTPUT);
+
+        registerClientAction("toggleTopLock", this::toggleTopLock);
+        registerClientAction("toggleBotLock", this::toggleBotLock);
     }
 
     @Override
@@ -62,6 +70,8 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
         if (isServerSide()) {
             this.maxProcessingTime = getHost().getMaxProcessingTime();
             this.processingTime = getHost().getProcessingTime();
+            this.botLock = getHost().botLock;
+            this.topLock = getHost().topLock;
         }
         super.standardDetectAndSendChanges();
     }
@@ -113,4 +123,21 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     public boolean stillValid(Player player) {
         return true;
     }
+
+    public void toggleBotLock() {
+        if (isClientSide()) {
+            sendClientAction("toggleBotLock");
+        } else {
+            getHost().toggleBotLock();
+        }
+    }
+
+    public void toggleTopLock() {
+        if (isClientSide()) {
+            sendClientAction("toggleTopLock");
+        } else {
+            getHost().toggleTopLock();
+        }
+    }
+
 }

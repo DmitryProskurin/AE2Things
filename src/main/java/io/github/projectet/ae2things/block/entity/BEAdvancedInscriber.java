@@ -68,6 +68,10 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private final int maxProcessingTime = 100;
     private boolean working;
 
+    public boolean topLock;
+
+    public boolean botLock;
+
     private final Map<InternalInventory, ItemStack> lastStacks = new IdentityHashMap<>(Map.of(
             topItemHandler, ItemStack.EMPTY,
             botItemHandler, ItemStack.EMPTY,
@@ -93,6 +97,9 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         this.sideItemHandlerExtern = new FilteredInternalInventory(this.sideItemHandler, filter);
 
         this.combinedExtInventory = new CombinedInternalInventory(topItemHandlerExtern, botItemHandlerExtern, sideItemHandlerExtern);
+
+        topLock = true;
+        botLock = true;
     }
 
     @Override
@@ -148,6 +155,14 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         return c;
     }
 
+    public void toggleTopLock() {
+        topLock = !topLock;
+    }
+
+    public void toggleBotLock() {
+        botLock = !botLock;
+    }
+
     @Override
     protected void writeToStream(FriendlyByteBuf data) {
         super.writeToStream(data);
@@ -189,12 +204,16 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     public void saveAdditional(CompoundTag data) {
         super.saveAdditional(data);
         this.upgrades.writeToNBT(data, "upgrades");
+        data.putBoolean("topLock", topLock);
+        data.putBoolean("botLock", botLock);
     }
 
     @Override
     public void loadTag(CompoundTag data) {
         super.loadTag(data);
         this.upgrades.readFromNBT(data, "upgrades");
+        topLock = data.getBoolean("topLock");
+        botLock = data.getBoolean("botLock");
     }
 
     @Override
@@ -299,6 +318,12 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     public class FilteredInventory implements IAEItemFilter {
         @Override
         public boolean allowExtract(InternalInventory inv, int slot, int amount) {
+            if(inv == topItemHandler) {
+                return !topLock && !sideItemHandler.getStackInSlot(1).isEmpty() && sideItemHandler.getStackInSlot(0).isEmpty();
+            }
+            else if(inv == botItemHandler) {
+                return !botLock && !sideItemHandler.getStackInSlot(1).isEmpty() && sideItemHandler.getStackInSlot(0).isEmpty();
+            }
             return slot == 1;
         }
 

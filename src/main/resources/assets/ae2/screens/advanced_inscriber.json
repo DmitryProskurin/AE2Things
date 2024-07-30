@@ -44,6 +44,14 @@
     "progressBar": {
       "left": 135,
       "top": 39
+    },
+    "topLock": {
+      "left": 22,
+      "top": 16
+    },
+    "botLock": {
+      "left": 22,
+      "top": 62
     }
   }
 }
