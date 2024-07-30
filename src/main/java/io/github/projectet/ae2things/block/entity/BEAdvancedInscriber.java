@@ -65,7 +65,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private final IUpgradeInventory upgrades;
     private InscriberRecipe cachedTask;
     private int processingTime = 0;
-    private final int maxProcessingTime = 100;
+    private final int maxProcessingTime = 50;
     private boolean working;
 
     public boolean topLock;
