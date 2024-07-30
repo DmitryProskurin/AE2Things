@@ -81,11 +81,6 @@ public class CrystalGrowthSlot extends Slot {
         }
     }
 
-    @Override
-    public void initialize(ItemStack stack) {
-        this.inventory.setItemDirect(this.invSlot, stack);
-    }
-
     private void notifyContainerSlotChanged() {
         if (this.getMenu() != null) {
             this.getMenu().onSlotChange(this);

@@ -11,6 +11,8 @@ import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 
 public class REI implements REIClientPlugin {
@@ -27,7 +29,7 @@ public class REI implements REIClientPlugin {
 
     @Override
     public void registerCategories(CategoryRegistry registry) {
-        ItemStack inscriber = new ItemStack(Registry.ITEM.get(AE2Things.id("advanced_inscriber")));
+        ItemStack inscriber = new ItemStack(BuiltInRegistries.ITEM.get(AE2Things.id("advanced_inscriber")));
         registry.addWorkstations(ID, EntryStacks.of(inscriber));
         registry.setPlusButtonArea(ID, ButtonArea.defaultArea());
     }

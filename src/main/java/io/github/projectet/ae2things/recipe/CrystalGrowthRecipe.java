@@ -2,6 +2,7 @@ package io.github.projectet.ae2things.recipe;
 
 import io.github.projectet.ae2things.AE2Things;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
@@ -94,7 +95,7 @@ public class CrystalGrowthRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack assemble(Container container) {
+    public ItemStack assemble(Container container, RegistryAccess registryAccess) {
         return outputIngredient.copy();
     }
 
@@ -104,7 +105,7 @@ public class CrystalGrowthRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
         return outputIngredient;
     }
 

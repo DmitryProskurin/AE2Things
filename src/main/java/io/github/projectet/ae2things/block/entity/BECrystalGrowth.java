@@ -26,6 +26,7 @@ import io.github.projectet.ae2things.item.AETItems;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -102,12 +103,6 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         return !cachedRecipes.isEmpty();
     }
 
-    private ItemStack multiplyYield(ItemStack stack) {
-        ItemStack copy = stack.copy();
-        copy.grow(this.upgrades.getInstalledUpgrades(AETItems.FORTUNE_CARD));
-        return copy;
-    }
-
     private boolean outputhasItem() {
         for (InternalInventory inv: progress.keySet()) {
             if(inv.getStackInSlot(3).getItem() != Items.AIR) {
@@ -154,7 +149,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
                     if(recipe != null) {
                         int d = progress.get(inventory);
                         if(d >= 100) {
-                            ItemStack resultItem = multiplyYield(recipe.getResultItem());
+                            ItemStack resultItem = recipe.getResultItem(RegistryAccess.EMPTY);
                             if(inventory.insertItem(3, resultItem, true).getCount() != 0)
                                 return;
                             int i = 2;
@@ -193,11 +188,6 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         clearEmptyCache();
         matchWork();
         return hasWork() ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
-    }
-
-    @Override
-    public void setOrientation(final Direction inForward, final Direction inUp) {
-        setPowerSides(EnumSet.allOf(Direction.class));
     }
 
     @Override
@@ -287,8 +277,8 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     @Override
-    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
-        super.addAdditionalDrops(level, pos, drops);
+    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops, boolean remove) {
+        super.addAdditionalDrops(level, pos, drops, remove);
 
         for (var upgrade : upgrades) {
             drops.add(upgrade);

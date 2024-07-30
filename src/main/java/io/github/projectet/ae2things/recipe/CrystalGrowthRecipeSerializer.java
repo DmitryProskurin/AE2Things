@@ -1,6 +1,8 @@
 package io.github.projectet.ae2things.recipe;
 
 import com.google.gson.JsonObject;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -40,7 +42,7 @@ public class CrystalGrowthRecipeSerializer implements RecipeSerializer<CrystalGr
 
     @Override
     public void toNetwork(FriendlyByteBuf friendlyByteBuf, CrystalGrowthRecipe recipe) {
-        friendlyByteBuf.writeItem(recipe.getResultItem());
+        friendlyByteBuf.writeItem(recipe.getResultItem(RegistryAccess.EMPTY));
         recipe.getFlawlessCrystal().toNetwork(friendlyByteBuf);
         recipe.getFlawedCrystal().toNetwork(friendlyByteBuf);
         recipe.getChippedCrystal().toNetwork(friendlyByteBuf);

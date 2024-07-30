@@ -41,7 +41,7 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
     private final ItemLike coreItem;
 
     public DISKDrive(ItemLike coreItem, int kilobytes, double idleDrain) {
-        super(new FabricItemSettings().stacksTo(1).tab(AE2Things.ITEM_GROUP).fireResistant());
+        super(new FabricItemSettings().stacksTo(1).fireResistant());
         this.bytes = kilobytes * 1000;
         this.coreItem = coreItem;
         this.idleDrain = idleDrain;
