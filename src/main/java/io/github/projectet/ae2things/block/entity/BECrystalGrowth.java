@@ -288,7 +288,6 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         }
         else if(!hasIngredients(inv)) {
             toRemove.add(inv);
-            progress.put(inv, 0);
         }
 
         if (!this.isWorking()) {
