@@ -42,7 +42,7 @@ public class AETItems {
         for(Tuple<ResourceLocation, ? extends Item> pair : ITEMS) {
             Registry.register(BuiltInRegistries.ITEM, pair.getA(), pair.getB());
         }
-        ItemGroupEvents.modifyEntriesEvent(ITEM_GROUP).register(group -> {
+        ItemGroupEvents.modifyEntriesEvent(BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(ITEM_GROUP).get()).register(group -> {
         for(Tuple<ResourceLocation, ? extends Item> pair : ITEMS) {
             group.accept(pair.getB());
         }

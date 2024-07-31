@@ -63,7 +63,7 @@ public class CrystalGrowthMenu extends UpgradeableMenu<BECrystalGrowth> {
 
     public CrystalGrowthMenu(int id, Inventory ip, BECrystalGrowth crystalGrowth) {
         super(CRYSTAL_GROWTH_SHT, id, ip, crystalGrowth);
-        world = ip.player.level;
+        world = ip.player.level();
         inventory = crystalGrowth.getInternalInventory();
         int i = 0;
         for(int y = 0; y < 3; y++) {

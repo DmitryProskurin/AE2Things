@@ -44,7 +44,7 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
 
     public AdvancedInscriberMenu(int syncId, Inventory playerInventory, BEAdvancedInscriber advancedInscriber) {
         super(ADVANCED_INSCRIBER_SHT, syncId, playerInventory, advancedInscriber);
-        world = playerInventory.player.level;
+        world = playerInventory.player.level();
         inventory = advancedInscriber.getInternalInventory();
 
         RestrictedInputSlot top = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE, inventory, 0);

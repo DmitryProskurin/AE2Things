@@ -1,16 +1,11 @@
 package io.github.projectet.ae2things;
 
 import appeng.api.IAEAddonEntrypoint;
-import appeng.api.config.RedstoneMode;
-import appeng.api.config.Setting;
-import appeng.api.config.Settings;
 import appeng.api.storage.StorageCells;
 import appeng.api.upgrades.Upgrades;
 import appeng.block.AEBaseBlockItem;
-import appeng.block.AEBaseEntityBlock;
 import appeng.core.AppEng;
 import appeng.core.definitions.AEItems;
-import appeng.menu.AEBaseMenu;
 import appeng.menu.SlotSemantic;
 import appeng.menu.SlotSemantics;
 import io.github.projectet.ae2things.block.BlockAdvancedInscriber;
@@ -32,29 +27,30 @@ import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.material.Material;
 
 public class AE2Things implements IAEAddonEntrypoint {
 
     public static final String MOD_ID = "ae2things";
 
-    public static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder(id("item_group")).icon(() -> new ItemStack(AETItems.DISK_HOUSING)).build();
+    public static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder().title(Component.translatable("itemGroup.ae2things.item_group")).icon(() -> new ItemStack(AETItems.DISK_HOUSING)).build();
 
     public static StorageManager STORAGE_INSTANCE = new StorageManager();
 
     public static SlotSemantic CG_SEMANTIC = SlotSemantics.register("AE2THINGS_CRYSTAL_GROWTH", false);
 
-    public static final Block ADVANCED_INSCRIBER = new BlockAdvancedInscriber(FabricBlockSettings.of(Material.METAL).destroyTime(4f));
+    public static final Block ADVANCED_INSCRIBER = new BlockAdvancedInscriber(FabricBlockSettings.copyOf(Blocks.IRON_BLOCK).destroyTime(4f));
     public static BlockEntityType<BEAdvancedInscriber> ADVANCED_INSCRIBER_BE = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("advanced_inscriber_be"), FabricBlockEntityTypeBuilder.create(BEAdvancedInscriber::new, ADVANCED_INSCRIBER).build());
 
 
-    public static final Block CRYSTAL_GROWTH = new BlockCrystalGrowth(FabricBlockSettings.of(Material.METAL).destroyTime(4f));
+    public static final Block CRYSTAL_GROWTH = new BlockCrystalGrowth(FabricBlockSettings.copyOf(Blocks.IRON_BLOCK).destroyTime(4f));
     public static BlockEntityType<BECrystalGrowth> CRYSTAL_GROWTH_BE = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id("crystal_growth_be"), FabricBlockEntityTypeBuilder.create(BECrystalGrowth::new, CRYSTAL_GROWTH).build());
 
     public static ResourceLocation id(String path) {
@@ -68,6 +64,8 @@ public class AE2Things implements IAEAddonEntrypoint {
 
     @Override
     public void onAe2Initialized() {
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id("item_group"), ITEM_GROUP);
+
         Command.init();
 
         StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
