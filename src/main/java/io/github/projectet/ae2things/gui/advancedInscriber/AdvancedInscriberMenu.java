@@ -1,7 +1,10 @@
 package io.github.projectet.ae2things.gui.advancedInscriber;
 
+import appeng.api.config.Settings;
+import appeng.api.config.YesNo;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.upgrades.IUpgradeableObject;
+import appeng.api.util.IConfigManager;
 import appeng.blockentity.misc.InscriberRecipes;
 import appeng.core.definitions.AEItems;
 import appeng.core.definitions.ItemDefinition;
@@ -41,6 +44,10 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     public boolean topLock;
     @GuiSync(8)
     public boolean botLock;
+    @GuiSync(9)
+    public YesNo autoExport = YesNo.NO;
+    @GuiSync(10)
+    public YesNo bufferSize = YesNo.YES;
 
     public AdvancedInscriberMenu(int syncId, Inventory playerInventory, BEAdvancedInscriber advancedInscriber) {
         super(ADVANCED_INSCRIBER_SHT, syncId, playerInventory, advancedInscriber);
@@ -74,6 +81,12 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
             this.topLock = getHost().topLock;
         }
         super.standardDetectAndSendChanges();
+    }
+
+    @Override
+    protected void loadSettingsFromHost(IConfigManager cm) {
+        this.autoExport = getHost().getConfigManager().getSetting(Settings.AUTO_EXPORT);
+        this.bufferSize = getHost().getConfigManager().getSetting(Settings.INSCRIBER_BUFFER_SIZE);
     }
 
     @Override
@@ -122,6 +135,14 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     @Override
     public boolean stillValid(Player player) {
         return true;
+    }
+
+    public YesNo getAutoExport() {
+        return autoExport;
+    }
+
+    public YesNo getBufferSize() {
+        return bufferSize;
     }
 
     public void toggleBotLock() {

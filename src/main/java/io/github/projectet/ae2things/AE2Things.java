@@ -4,6 +4,7 @@ import appeng.api.IAEAddonEntrypoint;
 import appeng.api.storage.StorageCells;
 import appeng.api.upgrades.Upgrades;
 import appeng.block.AEBaseBlockItem;
+import appeng.blockentity.AEBaseBlockEntity;
 import appeng.core.AppEng;
 import appeng.core.definitions.AEItems;
 import appeng.menu.SlotSemantic;
@@ -57,9 +58,9 @@ public class AE2Things implements IAEAddonEntrypoint {
         return new ResourceLocation(MOD_ID , path);
     }
 
-    private void registerBlockwithItem(String path, Block block) {
-        AETItems.item(new AEBaseBlockItem(block, new Item.Properties()), path);
+    private Item registerBlockwithItem(String path, Block block) {
         Registry.register(BuiltInRegistries.BLOCK, id(path), block);
+        return AETItems.item(new AEBaseBlockItem(block, new Item.Properties()), path);
     }
 
     @Override
@@ -71,11 +72,8 @@ public class AE2Things implements IAEAddonEntrypoint {
         StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
         StorageCells.addCellGuiHandler(new DISKItemCellGuiHandler());
 
-
-
-        registerBlockwithItem("advanced_inscriber", ADVANCED_INSCRIBER);
-
-        registerBlockwithItem("crystal_growth", CRYSTAL_GROWTH);
+        AEBaseBlockEntity.registerBlockEntityItem(ADVANCED_INSCRIBER_BE, registerBlockwithItem("advanced_inscriber", ADVANCED_INSCRIBER));
+        AEBaseBlockEntity.registerBlockEntityItem(CRYSTAL_GROWTH_BE, registerBlockwithItem("crystal_growth", CRYSTAL_GROWTH));
 
         AETItems.init();
 

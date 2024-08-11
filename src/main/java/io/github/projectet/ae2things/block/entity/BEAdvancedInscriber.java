@@ -14,6 +14,8 @@ import appeng.api.stacks.AEKey;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.api.upgrades.UpgradeInventories;
+import appeng.api.util.IConfigManager;
+import appeng.api.util.IConfigurableObject;
 import appeng.blockentity.grid.AENetworkPowerBlockEntity;
 import appeng.blockentity.misc.InscriberRecipes;
 import appeng.core.definitions.AEItems;
@@ -45,7 +47,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject {
+public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject, IConfigurableObject {
 
     // cycles from 0 - 16, at 8 it preforms the action, at 16 it re-enables the
     // normal routine.
@@ -57,6 +59,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private final InternalInventory topItemHandlerExtern;
     private final InternalInventory botItemHandlerExtern;
     private final InternalInventory sideItemHandlerExtern;
+
+    private final ConfigManager configManager;
 
     private final InternalInventory combinedExtInventory;
 
@@ -85,11 +89,16 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
         this.sideItemHandler.setMaxStackSize(1, 64);
 
+        this.configManager = new ConfigManager(this::onConfigChanged);
+
         this.getMainNode()
                 .setExposedOnSides(EnumSet.allOf(Direction.class))
                 .setIdlePowerUsage(0)
                 .addService(IGridTickable.class, this);
         this.setInternalMaxPower(1600);
+
+        this.configManager.registerSetting(Settings.AUTO_EXPORT, YesNo.NO);
+        this.configManager.registerSetting(Settings.INSCRIBER_BUFFER_SIZE, YesNo.YES);
 
         var filter = new FilteredInventory();
         this.topItemHandlerExtern = new FilteredInternalInventory(this.topItemHandler, filter);
@@ -100,6 +109,40 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
         topLock = true;
         botLock = true;
+    }
+
+    private void onConfigChanged(IConfigManager manager, Setting<?> setting) {
+        if (setting == Settings.AUTO_EXPORT) {
+            getMainNode().ifPresent((grid, node) -> grid.getTickManager().wakeDevice(node));
+        }
+
+        if (setting == Settings.INSCRIBER_BUFFER_SIZE) {
+            if (configManager.getSetting(Settings.INSCRIBER_BUFFER_SIZE) == YesNo.YES) {
+                topItemHandler.setMaxStackSize(0, 64);
+                sideItemHandler.setMaxStackSize(0, 64);
+                botItemHandler.setMaxStackSize(0, 64);
+            } else {
+                topItemHandler.setMaxStackSize(0, 4);
+                sideItemHandler.setMaxStackSize(0, 4);
+                botItemHandler.setMaxStackSize(0, 4);
+            }
+        }
+
+        saveChanges();
+    }
+
+    @Override
+    protected void saveVisualState(CompoundTag data) {
+        super.saveVisualState(data);
+
+        data.putBoolean("working", isWorking());
+    }
+
+    @Override
+    protected void loadVisualState(CompoundTag data) {
+        super.loadVisualState(data);
+
+        working = (data.getBoolean("working"));
     }
 
     @Override
@@ -171,6 +214,11 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         for (int i = 0; i < this.inv.size(); i++) {
             data.writeItem(inv.getStackInSlot(i));
         }
+    }
+
+    private boolean hasAutoExportWork() {
+        return !this.sideItemHandler.getStackInSlot(1).isEmpty()
+                && configManager.getSetting(Settings.AUTO_EXPORT) == YesNo.YES;
     }
 
     @Nullable
@@ -246,7 +294,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(TickRates.Inscriber, !this.hasWork(), false);
+        return new TickingRequest(TickRates.Inscriber, !this.hasWork() && !hasAutoExportWork(), true);
     }
 
     @Override
@@ -303,8 +351,37 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
             }
 
         }
+        if (this.pushOutResult()) {
+            return TickRateModulation.URGENT;
+        }
+
         matchWork();
-        return this.hasWork() ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
+        return this.hasWork() ? TickRateModulation.URGENT : this.hasAutoExportWork() ? TickRateModulation.SLOWER : TickRateModulation.SLEEP;
+    }
+
+    private boolean pushOutResult() {
+        if (!this.hasAutoExportWork()) {
+            return false;
+        }
+
+        var pushSides = EnumSet.allOf(Direction.class);
+
+        for (var dir : pushSides) {
+            var target = InternalInventory.wrapExternal(level, getBlockPos().relative(dir), dir.getOpposite());
+
+            if (target != null) {
+                int startItems = this.sideItemHandler.getStackInSlot(1).getCount();
+                this.sideItemHandler.insertItem(1, target.addItems(this.sideItemHandler.extractItem(1, 64, false)),
+                        false);
+                int endItems = this.sideItemHandler.getStackInSlot(1).getCount();
+
+                if (startItems != endItems) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public int getMaxProcessingTime() {
@@ -313,6 +390,11 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     public int getProcessingTime() {
         return this.processingTime;
+    }
+
+    @Override
+    public IConfigManager getConfigManager() {
+        return configManager;
     }
 
     public class FilteredInventory implements IAEItemFilter {
