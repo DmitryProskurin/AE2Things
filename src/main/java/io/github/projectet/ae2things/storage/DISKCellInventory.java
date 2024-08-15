@@ -360,19 +360,19 @@ public class DISKCellInventory implements StorageCell {
         }
 
         var currentAmount = this.getCellItems().getLong(what);
-        long remainingItemCount = getRemainingItemCount();
 
+        var toBeInserted = amount;
 
-        if (amount > remainingItemCount) {
-            amount = remainingItemCount;
+        if (amount > getRemainingItemCount()) {
+            toBeInserted = getRemainingItemCount();
         }
 
         if (mode == Actionable.MODULATE) {
-            getCellItems().put(what, currentAmount + amount);
+            getCellItems().put(what, currentAmount + toBeInserted);
             this.saveChanges();
         }
 
-        return amount;
+        return hasVoidUpgrade ? amount : toBeInserted;
     }
 
     @Override
