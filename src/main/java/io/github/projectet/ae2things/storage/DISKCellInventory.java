@@ -50,6 +50,7 @@ public class DISKCellInventory implements StorageCell {
     private Object2LongMap<AEKey> storedAmounts;
     private final ItemStack i;
     private boolean isPersisted = true;
+    private boolean hasVoidUpgrade;
 
     public DISKCellInventory(IDISKCellItem cellType, ItemStack stack, ISaveProvider saveProvider) {
         this.cellType = cellType;
@@ -77,6 +78,8 @@ public class DISKCellInventory implements StorageCell {
 
         partitionListMode = (hasInverter ? IncludeExclude.BLACKLIST : IncludeExclude.WHITELIST);
         partitionList = builder.build();
+        
+        this.hasVoidUpgrade = upgrades.isInstalled(AEItems.VOID_CARD);
     }
 
     private DataStorage getDiskStorage() {
@@ -357,19 +360,19 @@ public class DISKCellInventory implements StorageCell {
         }
 
         var currentAmount = this.getCellItems().getLong(what);
-        long remainingItemCount = getRemainingItemCount();
 
+        var toBeInserted = amount;
 
-        if (amount > remainingItemCount) {
-            amount = remainingItemCount;
+        if (amount > getRemainingItemCount()) {
+            toBeInserted = getRemainingItemCount();
         }
 
         if (mode == Actionable.MODULATE) {
-            getCellItems().put(what, currentAmount + amount);
+            getCellItems().put(what, currentAmount + toBeInserted);
             this.saveChanges();
         }
 
-        return amount;
+        return hasVoidUpgrade ? amount : toBeInserted;
     }
 
     @Override

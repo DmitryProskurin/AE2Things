@@ -59,7 +59,6 @@ public class AETItems {
         Upgrades.add(AEItems.FUZZY_CARD, item, 1, "gui.ae2things.upgrade.disk");
         Upgrades.add(AEItems.VOID_CARD, item, 1, "gui.ae2things.upgrade.disk");
         Upgrades.add(AEItems.INVERTER_CARD, item, 1, "gui.ae2things.upgrade.disk");
-        Upgrades.add(AEItems.EQUAL_DISTRIBUTION_CARD, item, 1, "gui.ae2things.upgrade.disk");
         StorageCellModels.registerModel(item, model);
 
         return item(item, id);
@@ -70,7 +69,6 @@ public class AETItems {
         Upgrades.add(AEItems.FUZZY_CARD, diskItem, 1, "gui.ae2things.upgrade.portabledisk");
         Upgrades.add(AEItems.VOID_CARD, diskItem, 1, "gui.ae2things.upgrade.portabledisk");
         Upgrades.add(AEItems.INVERTER_CARD, diskItem, 1, "gui.ae2things.upgrade.portabledisk");
-        Upgrades.add(AEItems.EQUAL_DISTRIBUTION_CARD, diskItem, 1, "gui.ae2things.upgrade.portabledisk");
         Upgrades.add(AEItems.ENERGY_CARD, diskItem, 2, "gui.ae2things.upgrade.portabledisk");
         StorageCellModels.registerModel(diskItem, model);
 

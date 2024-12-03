@@ -3,8 +3,6 @@ package io.github.projectet.ae2things.client;
 import appeng.api.IAEAddonEntrypoint;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.style.StyleManager;
-import appeng.items.storage.BasicStorageCell;
-import appeng.items.tools.powered.PortableCellItem;
 import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberMenu;
 import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberRootPanel;
 import io.github.projectet.ae2things.gui.crystalGrowth.CrystalGrowthMenu;
