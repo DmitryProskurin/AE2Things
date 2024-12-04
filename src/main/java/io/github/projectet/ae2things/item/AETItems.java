@@ -26,6 +26,7 @@ public class AETItems {
     public static final ResourceLocation MODEL_DISK_DRIVE_4K = AE2Things.id("model/drive/cells/disk_4k");
     public static final ResourceLocation MODEL_DISK_DRIVE_16K = AE2Things.id("model/drive/cells/disk_16k");
     public static final ResourceLocation MODEL_DISK_DRIVE_64K = AE2Things.id("model/drive/cells/disk_64k");
+    public static final ResourceLocation MODEL_DISK_DRIVE_256K = AE2Things.id("model/drive/cells/disk_256k");
 
     public static final FabricItemSettings DEFAULT_SETTINGS = new FabricItemSettings().group(AE2Things.ITEM_GROUP);
 
@@ -36,10 +37,13 @@ public class AETItems {
     public static final DISKDrive DISK_DRIVE_4K = registerCell(AETItems.MODEL_DISK_DRIVE_4K, new DISKDrive(AEItems.CELL_COMPONENT_4K, 4, 1.0f), "disk_drive_4k");
     public static final DISKDrive DISK_DRIVE_16K = registerCell(AETItems.MODEL_DISK_DRIVE_16K, new DISKDrive(AEItems.CELL_COMPONENT_16K, 16, 1.5f), "disk_drive_16k");
     public static final DISKDrive DISK_DRIVE_64K = registerCell(AETItems.MODEL_DISK_DRIVE_64K, new DISKDrive(AEItems.CELL_COMPONENT_64K, 64, 2.0f), "disk_drive_64k");
+    public static final DISKDrive DISK_DRIVE_256K = registerCell(AETItems.MODEL_DISK_DRIVE_256K, new DISKDrive(AEItems.CELL_COMPONENT_256K, 256, 2.5f), "disk_drive_256k");
+
     public static final Item PORTABLE_DISK_1K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_1K, "portable_disk_1k", AEItems.CELL_COMPONENT_1K.asItem());
     public static final Item PORTABLE_DISK_4K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_4K, "portable_disk_4k", AEItems.CELL_COMPONENT_4K.asItem());
     public static final Item PORTABLE_DISK_16K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_16K, "portable_disk_16k", AEItems.CELL_COMPONENT_16K.asItem());
     public static final Item PORTABLE_DISK_64K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_64K, "portable_disk_64k", AEItems.CELL_COMPONENT_64K.asItem());
+    public static final Item PORTABLE_DISK_256K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_256K,"portable_disk_256k", AEItems.CELL_COMPONENT_256K.asItem());
 
     public static final UpgradeCardItem FORTUNE_CARD = item(new UpgradeCardItem(DEFAULT_SETTINGS.stacksTo(64)), "fortune_upgrade");
 

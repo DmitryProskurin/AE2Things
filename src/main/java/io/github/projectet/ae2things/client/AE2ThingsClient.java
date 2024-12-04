@@ -44,7 +44,7 @@ public class AE2ThingsClient implements IAEAddonEntrypoint {
             return new CrystalGrowthRootPanel(menu, playerInv, title, style);
         });
 
-        ColorProviderRegistry.ITEM.register(DISKDrive::getColor, AETItems.DISK_DRIVE_1K, AETItems.DISK_DRIVE_4K, AETItems.DISK_DRIVE_16K, AETItems.DISK_DRIVE_64K);
-        ColorProviderRegistry.ITEM.register(PortableDISKItem::getColor, AETItems.PORTABLE_DISK_1K, AETItems.PORTABLE_DISK_4K, AETItems.PORTABLE_DISK_16K, AETItems.PORTABLE_DISK_64K);
+        ColorProviderRegistry.ITEM.register(DISKDrive::getColor, AETItems.DISK_DRIVE_1K, AETItems.DISK_DRIVE_4K, AETItems.DISK_DRIVE_16K, AETItems.DISK_DRIVE_64K, AETItems.DISK_DRIVE_256K);
+        ColorProviderRegistry.ITEM.register(PortableDISKItem::getColor, AETItems.PORTABLE_DISK_1K, AETItems.PORTABLE_DISK_4K, AETItems.PORTABLE_DISK_16K, AETItems.PORTABLE_DISK_64K, AETItems.PORTABLE_DISK_256K);
     }
 }
