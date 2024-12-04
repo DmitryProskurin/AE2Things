@@ -45,8 +45,6 @@ public class AETItems {
     public static final Item PORTABLE_DISK_64K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_64K, "portable_disk_64k", AEItems.CELL_COMPONENT_64K.asItem());
     public static final Item PORTABLE_DISK_256K = registerPortableDISK(AETItems.MODEL_DISK_DRIVE_256K,"portable_disk_256k", AEItems.CELL_COMPONENT_256K.asItem());
 
-    public static final UpgradeCardItem FORTUNE_CARD = item(new UpgradeCardItem(DEFAULT_SETTINGS.stacksTo(64)), "fortune_upgrade");
-
     public static void init() {
         for(Tuple<ResourceLocation, ? extends Item> pair : ITEMS) {
             Registry.register(Registry.ITEM, pair.getA(), pair.getB());
