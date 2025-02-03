@@ -318,9 +318,11 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     public class FilteredInventory implements IAEItemFilter {
+        private static final Set<Integer> EXTRACT_SLOTS = Set.of(3, 7, 11);
+        
         @Override
         public boolean allowExtract(InternalInventory inv, int slot, int amount) {
-            return slot == 3;
+            return EXTRACT_SLOTS.contains(slot);
         }
 
         @Override
@@ -330,13 +332,13 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
                 return false;
             }
             switch(slot) {
-                case 0 -> {
+                case 0, 4, 8 -> {
                     return recipe.getFlawlessCrystal().test(stack) || recipe.getFlawedCrystal().test(stack);
                 }
-                case 1 -> {
+                case 1, 5, 9 -> {
                     return recipe.getChippedCrystal().test(stack);
                 }
-                case 2 -> {
+                case 2, 6, 10 -> {
                     return recipe.getDamagedCrystal().test(stack);
                 }
                 default -> {
