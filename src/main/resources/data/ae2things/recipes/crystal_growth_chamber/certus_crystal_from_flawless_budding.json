@@ -1,0 +1,9 @@
+{
+  "type": "ae2things:crystal_growth_chamber",
+  "ingredients": {
+    "item": "ae2:flawless_budding_quartz"
+  },
+  "result": {
+    "item": "ae2:certus_quartz_crystal"
+  }
+}

@@ -45,13 +45,13 @@ public class CrystalGrowthSlot extends Slot {
         else {
             switch(slotIndex) {
                 case 0 -> {
-                    return recipe.getFlawlessCrystal().test(stack) || recipe.getFlawedCrystal().test(stack);
+                    return recipe.isFromFlawlessOrFlawed(stack);
                 }
                 case 1 -> {
-                    return recipe.getChippedCrystal().test(stack);
+                    return recipe.isFromChipped(stack);
                 }
                 case 2 -> {
-                    return recipe.getDamagedCrystal().test(stack);
+                    return recipe.isFromDamaged(stack);
                 }
                 default -> {
                     return false;

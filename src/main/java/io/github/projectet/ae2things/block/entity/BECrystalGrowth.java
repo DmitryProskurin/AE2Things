@@ -12,17 +12,13 @@ import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.api.upgrades.UpgradeInventories;
-import appeng.api.util.IConfigManager;
-import appeng.api.util.IConfigurableObject;
 import appeng.blockentity.grid.AENetworkPowerBlockEntity;
 import appeng.core.definitions.AEItems;
-import appeng.util.ConfigManager;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import io.github.projectet.ae2things.AE2Things;
-import io.github.projectet.ae2things.item.AETItems;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -145,7 +141,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
                                 ItemStack stack = inventory.getStackInSlot(i);
                                 if(stack.getItem() != Items.AIR) {
                                     Item item = recipe.nextStage(stack);
-                                    if(r.nextInt(12) == 0 && !recipe.isFlawless(stack)) {
+                                    if(r.nextInt(12) == 0 && !recipe.isFromFlawless(stack)) {
                                         inventory.getStackInSlot(i).shrink(1);
                                         if(item != Items.AIR && i != 2) {
                                             inventory.setItemDirect(i + 1, new ItemStack(item));
@@ -323,7 +319,10 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
 
     public class FilteredInventory implements IAEItemFilter {
         private static final Set<Integer> EXTRACT_SLOTS = Set.of(3, 7, 11);
-        
+        private static final Set<Integer> TOP_SLOTS = Set.of(0, 4, 8);
+        private static final Set<Integer> CHIPPED_SLOTS = Set.of(1, 5, 9);
+        private static final Set<Integer> DAMAGED_SLOTS = Set.of(2, 6, 10);
+
         @Override
         public boolean allowExtract(InternalInventory inv, int slot, int amount) {
             return EXTRACT_SLOTS.contains(slot);
@@ -335,20 +334,30 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
             if(recipe == null) {
                 return false;
             }
-            switch(slot) {
-                case 0, 4, 8 -> {
-                    return recipe.getFlawlessCrystal().test(stack) || recipe.getFlawedCrystal().test(stack);
-                }
-                case 1, 5, 9 -> {
-                    return recipe.getChippedCrystal().test(stack);
-                }
-                case 2, 6, 10 -> {
-                    return recipe.getDamagedCrystal().test(stack);
-                }
-                default -> {
-                    return false;
+            if (TOP_SLOTS.contains(slot) && (recipe.isFromFlawlessOrFlawed(stack))) {
+                return testMinimalCountInSlots(TOP_SLOTS, inv, slot);
+            }
+            if (CHIPPED_SLOTS.contains(slot) && recipe.isFromChipped(stack)) {
+                return testMinimalCountInSlots(CHIPPED_SLOTS, inv, slot);
+            }
+            if (DAMAGED_SLOTS.contains(slot) && recipe.isFromDamaged(stack)) {
+                return testMinimalCountInSlots(DAMAGED_SLOTS, inv, slot);
+            }
+            return false;
+        }
+
+        private boolean testMinimalCountInSlots(final Set<Integer> slotsForSelect, InternalInventory inv, int slot) {
+            Integer minSlotIndex = null;
+            Integer minCount = null;
+            for(var slotIndex : slotsForSelect) {
+                var count = inv.getStackInSlot(slotIndex).getCount();
+                if (minCount == null || minCount > count) {
+                    minSlotIndex = slotIndex;
+                    minCount = count;
                 }
             }
+
+            return minSlotIndex == slot;
         }
     }
 }

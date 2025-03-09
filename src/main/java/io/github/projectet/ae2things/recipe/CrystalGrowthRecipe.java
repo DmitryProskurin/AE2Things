@@ -13,7 +13,6 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-import java.util.Collection;
 
 public class CrystalGrowthRecipe implements Recipe<Container> {
 
@@ -23,19 +22,12 @@ public class CrystalGrowthRecipe implements Recipe<Container> {
 
     private final ResourceLocation id;
 
-    private final Ingredient flawlessCrystal;
-    private final Ingredient flawedCrystal;
-    private final Ingredient chippedCrystal;
-    private final Ingredient damagedCrystal;
     private final ItemStack outputIngredient;
+    private final Ingredient inputIngredient;
 
-    public CrystalGrowthRecipe(ResourceLocation id, Ingredient flawlessCrystal, Ingredient flawedCrystal,
-                               Ingredient chippedCrystal, Ingredient damagedCrystal, ItemStack outputIngredient) {
+    public CrystalGrowthRecipe(ResourceLocation id, Ingredient inputIngredient, ItemStack outputIngredient) {
         this.id = id;
-        this.flawlessCrystal = flawlessCrystal;
-        this.flawedCrystal = flawedCrystal;
-        this.chippedCrystal = chippedCrystal;
-        this.damagedCrystal = damagedCrystal;
+        this.inputIngredient = inputIngredient;
         this.outputIngredient = outputIngredient;
     }
 
@@ -58,33 +50,49 @@ public class CrystalGrowthRecipe implements Recipe<Container> {
         return matchedRecipe;
     }
 
-    public boolean isFlawless(ItemStack testStack) {
-        return getFlawlessCrystal().test(testStack);
+    public boolean isFromFlawlessOrFlawed(ItemStack testStack) {
+        return isFromFlawless(testStack) || isFromFlawed(testStack);
     }
 
-    public Ingredient getFlawlessCrystal() {
-        return flawlessCrystal;
+    public boolean isFromFlawless(ItemStack testStack) {
+        return testInternal(testStack, CrystalGrowthRecipeStatic.FLAWLESS_BUDDING_STACK);
     }
 
-    public Ingredient getFlawedCrystal() {
-        return flawedCrystal;
+    public boolean isFromFlawed(ItemStack testStack) {
+        return testInternal(testStack, CrystalGrowthRecipeStatic.FLAWED_BUDDING_STACK);
     }
 
-    public Ingredient getChippedCrystal() {
-        return chippedCrystal;
+    public boolean isFromChipped(ItemStack testStack) {
+        return testInternal(testStack, CrystalGrowthRecipeStatic.CHIPPED_BUDDING_STACK);
     }
 
-    public Ingredient getDamagedCrystal() {
-        return damagedCrystal;
+    public boolean isFromDamaged(ItemStack testStack) {
+        return testInternal(testStack, CrystalGrowthRecipeStatic.DAMAGED_BUDDING_STACK);
+    }
+
+    public boolean isFromFlawlessOrFlawed() {
+        return inputIngredient.test(CrystalGrowthRecipeStatic.FLAWLESS_BUDDING_STACK) || inputIngredient.test(CrystalGrowthRecipeStatic.FLAWED_BUDDING_STACK);
+    }
+
+    public boolean isFromChipped() {
+        return inputIngredient.test(CrystalGrowthRecipeStatic.CHIPPED_BUDDING_STACK);
+    }
+
+    public boolean isFromDamaged() {
+        return inputIngredient.test(CrystalGrowthRecipeStatic.DAMAGED_BUDDING_STACK);
+    }
+
+    private boolean testInternal(ItemStack testStack, ItemStack requiredStack) {
+        return inputIngredient.test(testStack) && inputIngredient.test(requiredStack);
     }
 
     public Item nextStage(ItemStack item) {
-        if(isFlawless(item))
+        if(isFromFlawless(item))
             return Items.AIR;
-        else if(getFlawedCrystal().test(item))
-            return getChippedCrystal().isEmpty() ? Items.AIR : getChippedCrystal().getItems()[0].getItem();
-        else if(getChippedCrystal().test(item))
-            return getDamagedCrystal().isEmpty() ? Items.AIR : getDamagedCrystal().getItems()[0].getItem();
+        else if(isFromFlawed(item))
+            return CrystalGrowthRecipeStatic.CHIPPED_BUDDING_ITEM;
+        else if(isFromChipped(item))
+            return CrystalGrowthRecipeStatic.DAMAGED_BUDDING_ITEM;;
         return Items.AIR;
     }
 
@@ -111,10 +119,7 @@ public class CrystalGrowthRecipe implements Recipe<Container> {
     @Override
     public NonNullList<Ingredient> getIngredients() {
         NonNullList<Ingredient> ingredients = NonNullList.create();
-        ingredients.add(this.flawlessCrystal);
-        ingredients.add(this.flawedCrystal);
-        ingredients.add(this.chippedCrystal);
-        ingredients.add(this.damagedCrystal);
+        ingredients.add(this.inputIngredient);
         return ingredients;
     }
 

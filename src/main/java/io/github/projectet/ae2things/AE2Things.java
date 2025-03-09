@@ -25,6 +25,7 @@ import io.github.projectet.ae2things.gui.crystalGrowth.CrystalGrowthMenu;
 import io.github.projectet.ae2things.item.AETItems;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipeSerializer;
+import io.github.projectet.ae2things.recipe.CrystalGrowthRecipeStatic;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.util.StorageManager;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
@@ -68,6 +69,7 @@ public class AE2Things implements IAEAddonEntrypoint {
 
     @Override
     public void onAe2Initialized() {
+        CrystalGrowthRecipeStatic.init();
         AETItems.init();
         Command.init();
 
