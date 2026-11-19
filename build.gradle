@@ -32,26 +32,35 @@ repositories {
             includeGroup "org.appliedenergistics"
         }
     }
-    // Add here additional repositories if required by some of the dependencies below.
+
     maven {
         name "Modmaven"
         url "https://modmaven.dev"
         content {
             includeGroup "appeng"
-            //includeGroup "dev.technici4n"
-            //includeGroup "mezz.jei"
-            //includeGroup "com.almostreliable.mods"
         }
     }
 
     maven {
         name = "Shedaniel Maven"
         url = "https://maven.shedaniel.me/"
+        content {
+            includeGroup "me.shedaniel"
+            includeGroup "me.shedaniel.cloth"
+        }
     }
 
     maven {
         name = "Architectury Maven"
-        url = "https://architectury.dev"
+        url = "https://maven.architectury.dev"
+        content {
+            includeGroup "dev.architectury"
+        }
+    }
+
+    maven {
+        name = "Sleeping Town"
+        url = "https://repo.sleeping.town/"
     }
 }
 
@@ -143,18 +152,24 @@ configurations {
 
 dependencies {
     implementation 'org.jetbrains:annotations:24.0.0'
+    //ae2
     api "org.appliedenergistics:appliedenergistics2:${project.ae2_version}:api"
     implementation "org.appliedenergistics:appliedenergistics2:${project.ae2_version}"
+    //rei
+    compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${project.rei_version}"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${project.rei_version}"
+    //emi
+    compileOnly "dev.emi:emi-neoforge:${project.emi_version}+${project.minecraft_version}:api"
 
-    compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:16.0.799"
-    compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:16.0.799"
+    switch (project.recipe_viewer) {
+        case "emi":
+            localRuntime "dev.emi:emi-neoforge:${project.emi_version}+${project.minecraft_version}"
+            break
+        case "rei":
+            localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${project.rei_version}"
+            break
+    }
 
-    //rei runtime
-//    localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:16.0.799"
-//    localRuntime "dev.architectury:architectury-neoforge:13.0.8"
-//    localRuntime "me.shedaniel.cloth:cloth-config-neoforge:15.0.140"
-
-    //todo emi/jade
     //implementation "org.appliedenergistics:appliedenergistics2:${project.ae2_version}"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
@@ -191,7 +206,9 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_name               : mod_name,
             mod_license            : mod_license,
             mod_version            : mod_version,
-            ae2_version            : ae2_version
+            ae2_version            : ae2_version,
+            emi_version            : emi_version,
+            rei_version            : rei_version
     ]
     inputs.properties replaceProperties
     expand replaceProperties
