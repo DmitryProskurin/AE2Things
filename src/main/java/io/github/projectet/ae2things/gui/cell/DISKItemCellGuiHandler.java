@@ -2,7 +2,7 @@ package io.github.projectet.ae2things.gui.cell;
 
 import appeng.api.implementations.blockentities.IChestOrDrive;
 import appeng.api.stacks.AEKeyType;
-import appeng.api.storage.cells.ICellGuiHandler;
+//import appeng.api.storage.cells.ICellGuiHandler;
 import appeng.api.storage.cells.ICellHandler;
 import appeng.menu.MenuOpener;
 import appeng.menu.locator.MenuLocators;
@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+/*
+https://github.com/AppliedEnergistics/Applied-Energistics-2/pull/7996/changes
 public class DISKItemCellGuiHandler implements ICellGuiHandler {
     @Override
     public boolean isSpecializedFor(ItemStack cell) {
@@ -25,3 +27,4 @@ public class DISKItemCellGuiHandler implements ICellGuiHandler {
                 MenuLocators.forBlockEntity(((BlockEntity) chest)));
     }
 }
+*/

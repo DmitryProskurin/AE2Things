@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "aba",
+    "aca",
+    "ada"
+  ],
+  "key": {
+    "a": {
+      "item": "ae2:growth_accelerator"
+    },
+    "b": {
+      "item": "minecraft:hopper"
+    },
+    "c": {
+      "item": "minecraft:chest"
+    },
+    "d": {
+      "item": "ae2:fluix_glass_cable"
+    }
+  },
+  "result": {
+    "id": "ae2things:crystal_growth",
+    "count": 1
+  }
+}

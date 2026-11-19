@@ -5,6 +5,7 @@ import appeng.api.implementations.menuobjects.IPortableTerminal;
 import appeng.api.implementations.menuobjects.ItemMenuHost;
 import appeng.api.storage.MEStorage;
 import appeng.api.util.IConfigManager;
+import appeng.items.contents.PortableCellMenuHost;
 import appeng.menu.ISubMenu;
 import appeng.util.ConfigManager;
 import com.google.common.base.Preconditions;
@@ -17,8 +18,8 @@ import java.util.function.BiConsumer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-
-public class PortableDISKMenuHost extends ItemMenuHost implements IPortableTerminal {
+/*
+public class PortableDISKMenuHost extends PortableCellMenuHost<PortableDISKItem> implements IPortableTerminal {
 
     private final BiConsumer<Player, ISubMenu> returnMainMenu;
     private final MEStorage cellStorage;
@@ -78,4 +79,4 @@ public class PortableDISKMenuHost extends ItemMenuHost implements IPortableTermi
         out.readFromNBT(getItemStack().getOrCreateTag().copy());
         return out;
     }
-}
+}*/

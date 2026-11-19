@@ -4,6 +4,7 @@ import appeng.core.AppEng;
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberRootPanel;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
+/*
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.ButtonArea;
@@ -45,4 +46,4 @@ public class REI implements REIClientPlugin {
         registry.add(new CrystalGrowthRecipeCategory());
         registry.addWorkstations(CRYSTAL_GROWTH, EntryStacks.of(AE2Things.CRYSTAL_GROWTH));
     }
-}
+}*/

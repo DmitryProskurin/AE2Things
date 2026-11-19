@@ -1,6 +1,24 @@
 {
-  "parent": "ae2:block/drive/drive_cell",
+  "ambientocclusion": false,
   "textures": {
-    "cell": "ae2things:model/drive/cells/disk_1k"
-  }
+    "particle": "ae2things:model/drive/cells/drive_cells",
+    "cell": "ae2things:model/drive/cells/drive_cells"
+  },
+  "elements": [
+    {
+      "name": "Cell Backdrop",
+      "from": [0, 0, 0],
+      "to": [6, 2, 2],
+      "rotation": { "angle": 0, "axis": "y", "origin": [9, 8, 8] },
+      "faces": {
+        "north": {
+          "uv": [0, 0, 6, 2],
+          "texture": "#cell",
+          "cullface": "north"
+        },
+        "up": { "uv": [6, 0, 0, 2], "texture": "#cell", "cullface": "north" },
+        "down": { "uv": [6, 0, 0, 2], "texture": "#cell", "cullface": "north" }
+      }
+    }
+  ]
 }

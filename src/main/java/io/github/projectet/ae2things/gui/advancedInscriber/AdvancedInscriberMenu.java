@@ -12,7 +12,9 @@ import appeng.menu.implementations.UpgradeableMenu;
 import appeng.menu.interfaces.IProgressProvider;
 import appeng.menu.slot.OutputSlot;
 import appeng.menu.slot.RestrictedInputSlot;
+import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.block.entity.BEAdvancedInscriber;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -22,7 +24,11 @@ import net.minecraft.world.level.Level;
 
 public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> implements IProgressProvider, IUpgradeableObject {
 
-    public static MenuType<AdvancedInscriberMenu> ADVANCED_INSCRIBER_SHT = MenuTypeBuilder.create(AdvancedInscriberMenu::new, BEAdvancedInscriber.class).build("advanced_inscriber");
+    public static ResourceLocation ID = AE2Things.id("advanced_inscriber");
+
+    public static MenuType<AdvancedInscriberMenu> ADVANCED_INSCRIBER_SHT =
+            MenuTypeBuilder.create(AdvancedInscriberMenu::new, BEAdvancedInscriber.class)
+                    .buildUnregistered(ID);
 
     private InternalInventory inventory;
     private Level world;
@@ -44,7 +50,7 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
 
     public AdvancedInscriberMenu(int syncId, Inventory playerInventory, BEAdvancedInscriber advancedInscriber) {
         super(ADVANCED_INSCRIBER_SHT, syncId, playerInventory, advancedInscriber);
-        world = playerInventory.player.level;
+        world = playerInventory.player.level();
         inventory = advancedInscriber.getInternalInventory();
 
         RestrictedInputSlot top = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE, inventory, 0);
@@ -83,8 +89,8 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
 
         if (s == this.middle) {
             ItemDefinition<?> press = AEItems.NAME_PRESS;
-            if (press.isSameAs(top) || press.isSameAs(bot)) {
-                return !press.isSameAs(is);
+            if (press.is(top) || press.is(bot)) {
+                return !press.is(is);
             }
 
             return InscriberRecipes.findRecipe(world, is, top, bot, false) != null;
@@ -98,8 +104,8 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
 
             // name presses
             ItemDefinition<?> namePress = AEItems.NAME_PRESS;
-            if (namePress.isSameAs(otherSlot)) {
-                return namePress.isSameAs(is);
+            if (namePress.is(otherSlot)) {
+                return namePress.is(is);
             }
 
             // everything else

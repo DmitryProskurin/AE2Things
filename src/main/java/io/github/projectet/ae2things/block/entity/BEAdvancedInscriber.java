@@ -9,33 +9,30 @@ import appeng.api.networking.energy.IEnergySource;
 import appeng.api.networking.ticking.IGridTickable;
 import appeng.api.networking.ticking.TickRateModulation;
 import appeng.api.networking.ticking.TickingRequest;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.api.upgrades.UpgradeInventories;
-import appeng.blockentity.grid.AENetworkPowerBlockEntity;
+import appeng.blockentity.grid.AENetworkedPoweredBlockEntity;
 import appeng.blockentity.misc.InscriberRecipes;
 import appeng.core.definitions.AEItems;
 import appeng.core.settings.TickRates;
-import appeng.me.helpers.MachineSource;
 import appeng.me.service.EnergyService;
 import appeng.recipes.handlers.InscriberProcessType;
 import appeng.recipes.handlers.InscriberRecipe;
-import appeng.util.ConfigManager;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
-import io.github.projectet.ae2things.AE2Things;
+import io.github.projectet.ae2things.definitions.AE2TBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +42,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject {
+public class BEAdvancedInscriber extends AENetworkedPoweredBlockEntity implements IGridTickable, IUpgradeableObject {
 
     // cycles from 0 - 16, at 8 it preforms the action, at 16 it re-enables the
     // normal routine.
@@ -78,10 +75,10 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
             sideItemHandler, ItemStack.EMPTY));
 
 
-    public BEAdvancedInscriber(BlockPos pos, BlockState state) {
-        super(AE2Things.ADVANCED_INSCRIBER_BE, pos, state);
+    public BEAdvancedInscriber(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+        super(blockEntityType, pos, state);
 
-        this.upgrades = UpgradeInventories.forMachine(AE2Things.ADVANCED_INSCRIBER, 5, this::saveChanges);
+        this.upgrades = UpgradeInventories.forMachine(AE2TBlocks.ADVANCED_INSCRIBER, 5, this::saveChanges);
 
         this.sideItemHandler.setMaxStackSize(1, 64);
 
@@ -113,7 +110,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    public void onChangeInventory(InternalInventory inv, int slot) {
+    public void onChangeInventory(AppEngInternalInventory inv, int slot) {
         if (slot == 0) {
             boolean isEmpty = inv.getStackInSlot(0).isEmpty();
             boolean wasEmpty = lastStacks.get(inv).isEmpty();
@@ -137,7 +134,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    protected boolean readFromStream(FriendlyByteBuf data) {
+    protected boolean readFromStream(RegistryFriendlyByteBuf data) {
         var c = super.readFromStream(data);
 
         var oldWorking = isWorking();
@@ -148,7 +145,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         }
 
         for (int i = 0; i < this.inv.size(); i++) {
-            this.inv.setItemDirect(i, data.readItem());
+            this.inv.setItemDirect(i, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
         }
         this.cachedTask = null;
 
@@ -164,12 +161,12 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    protected void writeToStream(FriendlyByteBuf data) {
+    protected void writeToStream(RegistryFriendlyByteBuf data) {
         super.writeToStream(data);
 
         data.writeBoolean(isWorking());
         for (int i = 0; i < this.inv.size(); i++) {
-            data.writeItem(inv.getStackInSlot(i));
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(data, inv.getStackInSlot(i));
         }
     }
 
@@ -201,17 +198,17 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    public void saveAdditional(CompoundTag data) {
-        super.saveAdditional(data);
-        this.upgrades.writeToNBT(data, "upgrades");
+    public void saveAdditional(CompoundTag data, HolderLookup.Provider registries) {
+        super.saveAdditional(data, registries);
+        this.upgrades.writeToNBT(data, "upgrades", registries);
         data.putBoolean("topLock", topLock);
         data.putBoolean("botLock", botLock);
     }
 
     @Override
-    public void loadTag(CompoundTag data) {
-        super.loadTag(data);
-        this.upgrades.readFromNBT(data, "upgrades");
+    public void loadTag(CompoundTag data, HolderLookup.Provider registries) {
+        super.loadTag(data, registries);
+        this.upgrades.readFromNBT(data, "upgrades", registries);
         topLock = data.getBoolean("topLock");
         botLock = data.getBoolean("botLock");
     }
@@ -246,7 +243,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(TickRates.Inscriber, !this.hasWork(), false);
+        return new TickingRequest(TickRates.Inscriber, !this.hasWork());
     }
 
     @Override
@@ -346,7 +343,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
             if (inv == topItemHandler)
                 top = stack;
 
-            for (var recipe : InscriberRecipes.getRecipes(getLevel())) {
+            for (var recipeHolder : InscriberRecipes.getRecipes(getLevel())) {
+                var recipe = recipeHolder.value();
                 if (!middle.isEmpty() && !recipe.getMiddleInput().test(middle)) {
                     continue;
                 }

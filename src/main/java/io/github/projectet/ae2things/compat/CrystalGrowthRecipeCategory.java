@@ -2,6 +2,7 @@ package io.github.projectet.ae2things.compat;
 
 import appeng.core.AppEng;
 import io.github.projectet.ae2things.AE2Things;
+/*
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.Renderer;
@@ -67,4 +68,4 @@ public class CrystalGrowthRecipeCategory implements DisplayCategory<CrystalGrowt
         }
         return result;
     }
-}
+}*/

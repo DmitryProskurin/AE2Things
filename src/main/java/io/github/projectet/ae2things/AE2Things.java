@@ -1,94 +1,68 @@
 package io.github.projectet.ae2things;
 
-import appeng.api.IAEAddonEntrypoint;
-import appeng.api.config.RedstoneMode;
-import appeng.api.config.Setting;
-import appeng.api.config.Settings;
 import appeng.api.storage.StorageCells;
 import appeng.api.upgrades.Upgrades;
-import appeng.block.AEBaseBlockItem;
-import appeng.block.AEBaseEntityBlock;
-import appeng.core.AppEng;
 import appeng.core.definitions.AEItems;
-import appeng.menu.AEBaseMenu;
-import appeng.menu.SlotSemantic;
-import appeng.menu.SlotSemantics;
-import appeng.menu.implementations.MenuTypeBuilder;
-import io.github.projectet.ae2things.block.BlockAdvancedInscriber;
-import io.github.projectet.ae2things.block.BlockCrystalGrowth;
-import io.github.projectet.ae2things.block.entity.BEAdvancedInscriber;
-import io.github.projectet.ae2things.block.entity.BECrystalGrowth;
-import io.github.projectet.ae2things.command.Command;
-import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberMenu;
-import io.github.projectet.ae2things.gui.cell.DISKItemCellGuiHandler;
-import io.github.projectet.ae2things.gui.crystalGrowth.CrystalGrowthMenu;
-import io.github.projectet.ae2things.item.AETItems;
-import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
-import io.github.projectet.ae2things.recipe.CrystalGrowthRecipeSerializer;
+import io.github.projectet.ae2things.definitions.*;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipeStatic;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.util.StorageManager;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
-public class AE2Things implements IAEAddonEntrypoint {
+@Mod(AE2Things.MOD_ID)
+public class AE2Things {
 
     public static final String MOD_ID = "ae2things";
 
-    public static final CreativeModeTab ITEM_GROUP = FabricItemGroupBuilder.build(id("item_group"), () -> new ItemStack(AETItems.DISK_HOUSING));
-
     public static StorageManager STORAGE_INSTANCE = new StorageManager();
 
-    public static SlotSemantic CG_SEMANTIC = SlotSemantics.register("AE2THINGS_CRYSTAL_GROWTH", false);
-
-    public static final Block ADVANCED_INSCRIBER = new BlockAdvancedInscriber(FabricBlockSettings.of(Material.METAL).destroyTime(4f));
-    public static BlockEntityType<BEAdvancedInscriber> ADVANCED_INSCRIBER_BE = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("advanced_inscriber_be"), FabricBlockEntityTypeBuilder.create(BEAdvancedInscriber::new, ADVANCED_INSCRIBER).build());
-
-
-    public static final Block CRYSTAL_GROWTH = new BlockCrystalGrowth(FabricBlockSettings.of(Material.METAL).destroyTime(4f));
-    public static BlockEntityType<BECrystalGrowth> CRYSTAL_GROWTH_BE = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("crystal_growth_be"), FabricBlockEntityTypeBuilder.create(BECrystalGrowth::new, CRYSTAL_GROWTH).build());
-
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(MOD_ID , path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID , path);
     }
 
-    private void registerBlockwithItem(String path, Block block) {
-        Registry.register(Registry.BLOCK, id(path), block);
-        Registry.register(Registry.ITEM, id(path), new AEBaseBlockItem(block, new Item.Properties().tab(ITEM_GROUP)));
-    }
-
-    @Override
-    public void onAe2Initialized() {
+    public AE2Things(IEventBus modBus) {
         CrystalGrowthRecipeStatic.init();
-        AETItems.init();
-        Command.init();
 
-        StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
-        StorageCells.addCellGuiHandler(new DISKItemCellGuiHandler());
+        AE2TComponents.DR.register(modBus);
+        AE2TRecipeTypes.DR.register(modBus);
+        AE2TRecipeSerializer.DR.register(modBus);
+        AE2TItems.DR.register(modBus);
+        AE2TBlocks.DR.register(modBus);
+        AE2TBlockEntities.DR.register(modBus);
+        AE2TMenus.DR.register(modBus);
+        AE2TCreativeTab.DR.register(modBus);
 
-        registerBlockwithItem("advanced_inscriber", ADVANCED_INSCRIBER);
+        modBus.addListener(AE2Things::initUpgrades);
+        modBus.addListener(AE2Things::initStorageCells);
 
-        registerBlockwithItem("crystal_growth", CRYSTAL_GROWTH);
+        NeoForge.EVENT_BUS.addListener(this::onServerLevelTickStart);
+    }
 
-        Upgrades.add(AEItems.SPEED_CARD, ADVANCED_INSCRIBER, 5);
-        Upgrades.add(AEItems.SPEED_CARD, CRYSTAL_GROWTH, 3);
+    private static void initUpgrades(FMLCommonSetupEvent event) {
+        event.enqueueWork(()-> {
+            AE2TItems.initUpgrades();
+            Upgrades.add(AEItems.SPEED_CARD, AE2TBlocks.ADVANCED_INSCRIBER, 5);
+            Upgrades.add(AEItems.SPEED_CARD, AE2TBlocks.CRYSTAL_GROWTH, 3);
+        });
+    }
 
-        ServerTickEvents.START_WORLD_TICK.register((world ->
-            STORAGE_INSTANCE = StorageManager.getInstance(world.getServer())));
+    private static void initStorageCells(FMLCommonSetupEvent event) {
+        event.enqueueWork(()->{
+            StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
+        });
+    }
 
-        Registry.register(Registry.MENU, AppEng.makeId("advanced_inscriber"),AdvancedInscriberMenu.ADVANCED_INSCRIBER_SHT);
-        Registry.register(Registry.MENU, AppEng.makeId("crystal_growth"),CrystalGrowthMenu.CRYSTAL_GROWTH_SHT);
+    private void onServerLevelTickStart(LevelTickEvent.Pre event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
 
-        Registry.register(Registry.RECIPE_SERIALIZER, CrystalGrowthRecipe.TYPE_ID, CrystalGrowthRecipeSerializer.INSTANCE);
+        STORAGE_INSTANCE = StorageManager.getInstance(level.getServer());
     }
 }

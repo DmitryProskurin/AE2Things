@@ -1,0 +1,10 @@
+{
+  "type": "ae2things:crystal_growth_chamber",
+  "ingredients": {
+    "item": "ae2:flawed_budding_quartz"
+  },
+  "result": {
+    "count": 1,
+    "id": "ae2:certus_quartz_crystal"
+  }
+}

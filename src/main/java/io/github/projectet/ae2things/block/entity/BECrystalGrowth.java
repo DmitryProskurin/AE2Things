@@ -12,29 +12,31 @@ import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.api.upgrades.UpgradeInventories;
-import appeng.blockentity.grid.AENetworkPowerBlockEntity;
+import appeng.blockentity.grid.AENetworkedPoweredBlockEntity;
 import appeng.core.definitions.AEItems;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
-import io.github.projectet.ae2things.AE2Things;
+import io.github.projectet.ae2things.definitions.AE2TBlocks;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject {
+public class BECrystalGrowth extends AENetworkedPoweredBlockEntity implements IGridTickable, IUpgradeableObject {
     private final InternalInventory extInventory;
 
     private final AppEngInternalInventory topRow = new AppEngInternalInventory(this, 4, 64);
@@ -56,9 +58,9 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
 
     private boolean isWorking;
 
-    public BECrystalGrowth(BlockPos pos, BlockState state) {
-        super(AE2Things.CRYSTAL_GROWTH_BE, pos, state);
-        upgrades = UpgradeInventories.forMachine(AE2Things.CRYSTAL_GROWTH, 3, this::saveChanges);
+    public BECrystalGrowth(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+        super(blockEntityType, pos, state);
+        upgrades = UpgradeInventories.forMachine(AE2TBlocks.CRYSTAL_GROWTH, 3, this::saveChanges);
         var filter = new FilteredInventory();
         this.extInventory = new FilteredInternalInventory(combInv, filter);
 
@@ -71,7 +73,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(1, 20, this.combInv.isEmpty() || !this.hasWork(), true);
+        return new TickingRequest(1, 20, this.combInv.isEmpty() || !this.hasWork());
     }
 
     public int getTopProg() {
@@ -169,11 +171,6 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     @Override
-    public void setOrientation(final Direction inForward, final Direction inUp) {
-        setPowerSides(EnumSet.allOf(Direction.class));
-    }
-
-    @Override
     public void onReady() {
         this.getMainNode().setExposedOnSides(EnumSet.allOf(Direction.class));
         super.onReady();
@@ -201,7 +198,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     @Override
-    protected boolean readFromStream(FriendlyByteBuf data) {
+    protected boolean readFromStream(RegistryFriendlyByteBuf data) {
         var c = super.readFromStream(data);
 
         var oldWorking = isWorking();
@@ -212,20 +209,20 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
         }
 
         for (int i = 0; i < this.combInv.size(); i++) {
-            this.combInv.setItemDirect(i, data.readItem());
+            this.combInv.setItemDirect(i, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
         }
 
         return c;
     }
 
     @Override
-    protected void writeToStream(FriendlyByteBuf data) {
+    protected void writeToStream(RegistryFriendlyByteBuf data) {
         super.writeToStream(data);
 
         data.writeBoolean(isWorking());
 
         for (int i = 0; i < this.combInv.size(); i++) {
-            data.writeItem(combInv.getStackInSlot(i));
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(data, combInv.getStackInSlot(i));
         }
     }
 
@@ -242,17 +239,17 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     @Override
-    public void saveAdditional(CompoundTag data) {
-        super.saveAdditional(data);
-        this.upgrades.writeToNBT(data, "upgrades");
+    public void saveAdditional(CompoundTag data, HolderLookup.Provider registries) {
+        super.saveAdditional(data, registries);
+        this.upgrades.writeToNBT(data, "upgrades", registries);
         data.putBoolean("working", isWorking);
         data.putIntArray("progress", new int[]{getTopProg(), getMidProg(), getBotProg()});
     }
 
     @Override
-    public void loadTag(CompoundTag data) {
-        super.loadTag(data);
-        this.upgrades.readFromNBT(data, "upgrades");
+    public void loadTag(CompoundTag data, HolderLookup.Provider registries) {
+        super.loadTag(data, registries);
+        this.upgrades.readFromNBT(data, "upgrades", registries);
         this.isWorking = data.getBoolean("working");
         int[] savedProgress = data.getIntArray("progress");
         this.progress.put(topRow, savedProgress[0]);
@@ -280,7 +277,7 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
     }
 
     @Override
-    public void onChangeInventory(InternalInventory inv, int slot) {
+    public void onChangeInventory(AppEngInternalInventory inv, int slot) {
         CrystalGrowthRecipe recipe = CrystalGrowthRecipe.getRecipefromStack(this.level, inv.getStackInSlot(slot));
         if(cachedRecipes.get(inv) != recipe && recipe != null) {
             cachedRecipes.put(inv, recipe);
@@ -356,7 +353,8 @@ public class BECrystalGrowth extends AENetworkPowerBlockEntity implements IGridT
                     minCount = count;
                 }
             }
-
+            //amm....
+            if (minSlotIndex == null) return false;
             return minSlotIndex == slot;
         }
     }

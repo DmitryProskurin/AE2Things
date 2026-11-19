@@ -1,9 +1,9 @@
 {
   "$schema": "schema.json",
-  "includes": ["common/common.json", "common/player_inventory.json"],
+  "includes": ["common/common.json", "common/player_inventory.json", "common/toolbox.json"],
   "background": {
     "texture": "guis/crystal_growth.png",
-    "srcRect": [0, 0, 176, 166]
+    "srcRect": [0, 0, 176, 168]
   },
   "text": {
     "dialog_title": {
@@ -24,16 +24,16 @@
   },
   "widgets": {
     "pb1": {
-      "left": 152,
-      "top": 16
+      "left": 154,
+      "top": 18
     },
     "pb2": {
-      "left": 152,
-      "top": 34
+      "left": 154,
+      "top": 36
     },
     "pb3": {
-      "left": 152,
-      "top": 52
+      "left": 154,
+      "top": 54
     }
   }
 }

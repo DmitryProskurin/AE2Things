@@ -2,7 +2,8 @@ package io.github.projectet.ae2things.mixin;
 
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.storage.DISKCellInventory;
-import io.github.projectet.ae2things.util.Constants;
+import io.github.projectet.ae2things.storage.DiskCellInfo;
+import io.github.projectet.ae2things.definitions.AE2TComponents;
 import io.github.projectet.ae2things.util.DataStorage;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
@@ -28,16 +29,33 @@ public abstract class CursedInternalSlotMixin {
     @Shadow
     public NonNullList<Slot> slots;
 
-    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copy ()Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem ()Z")), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
+    @Inject(
+            method = "doClick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;copyWithCount(I)Lnet/minecraft/world/item/ItemStack;"
+            ),
+            slice = @Slice(
+                    from = @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/world/inventory/Slot;hasItem()Z"
+                    )
+            ),
+            locals = LocalCapture.CAPTURE_FAILHARD,
+            cancellable = true
+    )
     public void CLONE(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
         Slot i = this.slots.get(slotIndex);
         if(DISKCellInventory.hasDiskUUID(i.getItem())) {
-                DataStorage storage = AE2Things.STORAGE_INSTANCE
-                        .getOrCreateDisk(i.getItem().getOrCreateTag().getUUID(Constants.DISKUUID));
+                var itemCellInfo = i.getItem().getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+                if (itemCellInfo.isDefault() || AE2Things.STORAGE_INSTANCE == null)
+                    return;
+
+                DataStorage storage = AE2Things.STORAGE_INSTANCE.getOrCreateDisk(itemCellInfo.uuidAsUUID());
                 ItemStack newStack = new ItemStack(i.getItem().getItem());
+                //idk. id rematch?
                 UUID id = UUID.randomUUID();
-                newStack.getOrCreateTag().putUUID(Constants.DISKUUID, id);
-                newStack.getOrCreateTag().putLong(DISKCellInventory.ITEM_COUNT_TAG, storage.itemCount);
+                newStack.set(AE2TComponents.DISK_CELL_INFO, new DiskCellInfo(id.toString(), storage.itemCount));
                 AE2Things.STORAGE_INSTANCE.updateDisk(id, storage);
 
                 newStack.setCount(newStack.getMaxStackSize());

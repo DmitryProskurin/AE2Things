@@ -1,69 +1,54 @@
 package io.github.projectet.ae2things.item;
 
-import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
-import appeng.api.implementations.menuobjects.IMenuItem;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
+import appeng.api.ids.AEComponents;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.storage.StorageCells;
-import appeng.api.storage.StorageHelper;
 import appeng.api.storage.cells.CellState;
 import appeng.api.upgrades.IUpgradeInventory;
-import appeng.api.upgrades.IUpgradeableItem;
 import appeng.api.upgrades.UpgradeInventories;
-import appeng.block.networking.EnergyCellBlockItem;
-import appeng.core.AEConfig;
-import appeng.core.AELog;
 import appeng.core.definitions.AEItems;
-import appeng.core.localization.PlayerMessages;
 import appeng.hooks.AEToolItem;
 import appeng.items.contents.CellConfig;
+import appeng.items.contents.PortableCellMenuHost;
 import appeng.items.materials.StorageComponentItem;
-import appeng.items.tools.powered.PortableCellItem;
-import appeng.items.tools.powered.powersink.AEBasePoweredItem;
-import appeng.me.helpers.PlayerSource;
-import appeng.menu.MenuOpener;
-import appeng.menu.locator.MenuLocators;
+import appeng.items.storage.StorageTier;
+import appeng.items.tools.powered.AbstractPortableCell;
+import appeng.menu.locator.ItemMenuHostLocator;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.util.ConfigInventory;
-import appeng.util.InteractionUtil;
 import io.github.projectet.ae2things.AE2Things;
-import io.github.projectet.ae2things.gui.cell.PortableDISKMenuHost;
-import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickAction;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem, IMenuItem, IUpgradeableItem, AEToolItem {
+public class PortableDISKItem extends AbstractPortableCell implements IDISKCellItem, AEToolItem {
 
-    private final StorageComponentItem item;
+    private final StorageTier tier;
     private final AEKeyType keyType = AEKeyType.items();
-    private final MenuType<?> menuType = MEStorageMenu.PORTABLE_ITEM_CELL_TYPE;
 
-    public PortableDISKItem(StorageComponentItem item, Properties props) {
-        super(AEConfig.instance().getPortableCellBattery(), props);
-        this.item = item;
+//    private final MenuType<?> menuType = MEStorageMenu.PORTABLE_ITEM_CELL_TYPE;
+
+//    public PortableDISKItem(StorageComponentItem item, MenuType<?> menuType, Properties props, int defaultColor) {
+//        super(menuType, props, defaultColor);
+//        this.item = item;
+//    }
+
+    public PortableDISKItem(StorageTier tier, Properties props) {
+        super(MEStorageMenu.PORTABLE_ITEM_CELL_TYPE, props, 0xFF80caff);
+        this.tier = tier;
     }
 
     public ResourceLocation getRecipeId() {
@@ -75,37 +60,40 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
         return 80d + 80d * getUpgrades(stack).getInstalledUpgrades(AEItems.ENERGY_CARD);
     }
 
-    public boolean openFromInventory(Player player, int inventorySlot) {
-        var is = player.getInventory().getItem(inventorySlot);
-        if (is.getItem() == this) {
-            return MenuOpener.open(menuType, player, MenuLocators.forInventorySlot(inventorySlot));
-        } else {
-            return false;
-        }
-    }
+//    @Override
+//    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+//        return context.isSecondaryUseActive()
+//                && this.disassembleDrive(stack, context.getLevel(), context.getPlayer())
+//                ? InteractionResult.sidedSuccess(context.getLevel().isClientSide())
+//                : InteractionResult.PASS;
+//    }
 
-    @Nullable
+    /*@Nullable
     @Override
     public PortableDISKMenuHost getMenuHost(Player player, int inventorySlot, ItemStack stack, @Nullable BlockPos pos) {
         return new PortableDISKMenuHost(player, inventorySlot, this, stack, (p, sm) -> openFromInventory(p, inventorySlot));
-    }
+    }*/
 
     @Override
-    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        return context.isSecondaryUseActive()
-                && this.disassembleDrive(stack, context.getLevel(), context.getPlayer())
-                ? InteractionResult.sidedSuccess(context.getLevel().isClientSide())
-                : InteractionResult.PASS;
+    public @Nullable PortableCellMenuHost<?> getMenuHost(Player player, ItemMenuHostLocator locator, @Nullable BlockHitResult hitResult) {
+        //return new PortableDISKMenuHost(player, inventorySlot, this, stack, (p, sm) -> openFromInventory(p, inventorySlot));
+        return new PortableCellMenuHost<>(this, player, locator,
+                (p, sm) -> openFromInventory(p, locator, true));
     }
 
-    private boolean disassembleDrive(ItemStack stack, Level level, Player player) {
+    /*private boolean disassembleDrive(ItemStack stack, Level level, Player player) {
         if (!AEConfig.instance().isPortableCellDisassemblyEnabled()) {
             return false;
         }
 
         // We refund the crafting recipe ingredients (the first one each)
-        var recipe = level.getRecipeManager().byKey(getRecipeId()).orElse(null);
-        if (!(recipe instanceof CraftingRecipe craftingRecipe)) {
+        var recipeHolder = level.getRecipeManager().byKey(getRecipeId()).orElse(null);
+        if (recipeHolder == null) {
+            AELog.debug("Cannot disassemble portable cell because it's crafting recipe is null: %s",
+                    getRecipeId());
+            return false;
+        }
+        if (!(recipeHolder.value() instanceof CraftingRecipe craftingRecipe)) {
             AELog.debug("Cannot disassemble portable cell because it's crafting recipe doesn't exist: %s",
                     getRecipeId());
             return false;
@@ -149,7 +137,7 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
         }
 
         return true;
-    }
+    }*/
 
     @Override
     public AEKeyType getKeyType() {
@@ -157,28 +145,28 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void appendHoverText(ItemStack stack, Level level, List<Component> lines,
-                              TooltipFlag advancedTooltips) {
-        super.appendHoverText(stack, level, lines, advancedTooltips);
+    @OnlyIn(Dist.CLIENT)
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines,
+                                TooltipFlag advancedTooltips) {
+        super.appendHoverText(stack, context, lines, advancedTooltips);
         addCellInformationToTooltip(stack, lines);
     }
 
-    @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        if (!InteractionUtil.isInAlternateUseMode(player)
-                || !disassembleDrive(player.getItemInHand(hand), level, player)) {
-            if (!level.isClientSide()) {
-                MenuOpener.open(getMenuType(), player, MenuLocators.forHand(player, hand));
-            }
-        }
-        return new InteractionResultHolder<>(InteractionResult.sidedSuccess(level.isClientSide()),
-                player.getItemInHand(hand));
-    }
+//    @Override
+//    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+//        if (!InteractionUtil.isInAlternateUseMode(player)
+//                || !disassembleDrive(player.getItemInHand(hand), level, player)) {
+//            if (!level.isClientSide()) {
+//                MenuOpener.open(getMenuType(), player, MenuLocators.forHand(player, hand));
+//            }
+//        }
+//        return new InteractionResultHolder<>(InteractionResult.sidedSuccess(level.isClientSide()),
+//                player.getItemInHand(hand));
+//    }
 
     @Override
     public int getBytes(ItemStack cellItem) {
-        return this.item.getBytes(cellItem);
+        return this.tier.bytes() / 2;
     }
 
     @Override
@@ -191,7 +179,8 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
         return true;
     }
 
-    private void onUpgradesChanged(ItemStack stack, IUpgradeInventory upgrades) {
+    @Override
+    public void onUpgradesChanged(ItemStack stack, IUpgradeInventory upgrades) {
         var energyCards = upgrades.getInstalledUpgrades(AEItems.ENERGY_CARD);
         // The energy card is crafted with a dense energy cell, while the portable cell just uses a normal energy cell
         // Since the dense cells capacity is 8x the normal capacity, the result should be 9x normal.
@@ -205,109 +194,27 @@ public class PortableDISKItem extends AEBasePoweredItem implements IDISKCellItem
 
     @Override
     public ConfigInventory getConfigInventory(ItemStack is) {
-        return CellConfig.create(keyType.filter(), is);
+        return CellConfig.create(Set.of(keyType), is);
     }
 
     @Override
     public FuzzyMode getFuzzyMode(ItemStack is) {
-        final String fz = is.getOrCreateTag().getString("FuzzyMode");
-        try {
-            return FuzzyMode.valueOf(fz);
-        } catch (Throwable t) {
-            return FuzzyMode.IGNORE_ALL;
-        }
+        return is.getOrDefault(AEComponents.STORAGE_CELL_FUZZY_MODE, FuzzyMode.IGNORE_ALL);
     }
 
     @Override
     public void setFuzzyMode(ItemStack is, FuzzyMode fzMode) {
-        is.getOrCreateTag().putString("FuzzyMode", fzMode.name());
+        is.set(AEComponents.STORAGE_CELL_FUZZY_MODE, fzMode);
     }
 
-    @Override
-    public boolean allowNbtUpdateAnimation(Player player, InteractionHand hand, ItemStack oldStack,
-                                           ItemStack newStack) {
-        return false;
-    }
+    //overrideStackedOnOther and insert from base class instead of own
 
-    public long insert(Player player, ItemStack itemStack, AEKey what, long amount, Actionable mode) {
-        if (keyType.tryCast(what) == null) {
-            return 0;
-        }
-
-        var host = getMenuHost(player, -1, itemStack, null);
-        if (host == null) {
-            return 0;
-        }
-
-        var inv = host.getInventory();
-        if (inv != null) {
-            return StorageHelper.poweredInsert(
-                    host,
-                    inv,
-                    what,
-                    amount,
-                    new PlayerSource(player),
-                    mode);
-        }
-        return 0;
-    }
-
-    public MenuType<?> getMenuType() {
-        return menuType;
-    }
-
-    @Override
-    public boolean overrideStackedOnOther(ItemStack stack, Slot slot, ClickAction action, Player player) {
-        if (action != ClickAction.SECONDARY || !slot.allowModification(player)) {
-            return false;
-        }
-
-        var other = slot.getItem();
-        if (other.isEmpty()) {
-            return true;
-        }
-        AEKey key = AEItemKey.of(other);
-        int inserted = (int) insert(player, stack, key, other.getCount(), Actionable.MODULATE);
-        other.shrink(inserted);
-
-        return true;
-    }
-
-    /**
-     * Allows directly inserting items and fluids into portable cells by right-clicking the cell with the item or bucket
-     * in hand.
-     */
-    @Override
-    public boolean overrideOtherStackedOnMe(ItemStack stack, ItemStack other, Slot slot, ClickAction action,
-                             Player player, SlotAccess access) {
-        if (action != ClickAction.SECONDARY || !slot.allowModification(player)) {
-            return false;
-        }
-
-        if (other.isEmpty()) {
-            return false;
-        }
-
-        AEKey key = AEItemKey.of(other);
-        int inserted = (int) insert(player, stack, key, other.getCount(), Actionable.MODULATE);
-        other.shrink(inserted);
-        return true;
-    }
+//    public MenuType<?> getMenuType() {
+//        return menuType;
+//    }
 
     public static int getColor(ItemStack stack, int tintIndex) {
-        if (tintIndex == 1 && stack.getItem() instanceof PortableCellItem portableCellItem) {
-            // If the cell is out of power, always display empty
-            if (portableCellItem.getAECurrentPower(stack) <= 0) {
-                return CellState.ABSENT.getStateColor();
-            }
-
-            // Determine LED color
-            var cellInv = StorageCells.getCellInventory(stack, null);
-            var cellStatus = cellInv != null ? cellInv.getStatus() : CellState.EMPTY;
-            return cellStatus.getStateColor();
-        } else {
-            // White
-            return 0xFFFFFF;
-        }
+        int color = AbstractPortableCell.getColor(stack, tintIndex);
+        return FastColor.ARGB32.opaque(color);
     }
 }
