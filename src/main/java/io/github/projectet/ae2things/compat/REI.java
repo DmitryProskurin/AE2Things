@@ -2,9 +2,11 @@ package io.github.projectet.ae2things.compat;
 
 import appeng.core.AppEng;
 import io.github.projectet.ae2things.AE2Things;
+import io.github.projectet.ae2things.definitions.AE2TBlocks;
+import io.github.projectet.ae2things.definitions.AE2TRecipeTypes;
 import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberRootPanel;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
-/*
+
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.ButtonArea;
@@ -13,16 +15,14 @@ import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.core.Registry;
+import me.shedaniel.rei.forge.REIPluginClient;
 import net.minecraft.world.item.ItemStack;
 
-@Environment(EnvType.CLIENT)
+@REIPluginClient
 public class REI implements REIClientPlugin {
 
     CategoryIdentifier<?> ID = CategoryIdentifier.of(AppEng.makeId("ae2.inscriber"));
-    public static final CategoryIdentifier<CrystalGrowthRecipeDisplay> CRYSTAL_GROWTH = CategoryIdentifier.of(CrystalGrowthRecipe.TYPE_ID);
+    public static final CategoryIdentifier<CrystalGrowthRecipeDisplay> CRYSTAL_GROWTH = CategoryIdentifier.of(AE2Things.id(AE2TRecipeTypes.CRYSTAL_GROWTH_RECIPE_ID));
 
     @Override
     public void registerScreens(ScreenRegistry registry) {
@@ -34,16 +34,16 @@ public class REI implements REIClientPlugin {
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
-        registry.registerRecipeFiller(CrystalGrowthRecipe.class, CrystalGrowthRecipe.TYPE, CrystalGrowthRecipeDisplay::new);
+        registry.registerRecipeFiller(CrystalGrowthRecipe.class, AE2TRecipeTypes.CRYSTAL_GROWTH_RECIPE, CrystalGrowthRecipeDisplay::new);
     }
 
     @Override
     public void registerCategories(CategoryRegistry registry) {
-        ItemStack inscriber = new ItemStack(Registry.ITEM.get(AE2Things.id("advanced_inscriber")));
+        ItemStack inscriber = new ItemStack(AE2TBlocks.ADVANCED_INSCRIBER);
         registry.addWorkstations(ID, EntryStacks.of(inscriber));
         registry.setPlusButtonArea(ID, ButtonArea.defaultArea());
 
         registry.add(new CrystalGrowthRecipeCategory());
-        registry.addWorkstations(CRYSTAL_GROWTH, EntryStacks.of(AE2Things.CRYSTAL_GROWTH));
+        registry.addWorkstations(CRYSTAL_GROWTH, EntryStacks.of(AE2TBlocks.CRYSTAL_GROWTH));
     }
-}*/
+}

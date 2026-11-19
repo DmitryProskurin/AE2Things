@@ -43,6 +43,16 @@ repositories {
             //includeGroup "com.almostreliable.mods"
         }
     }
+
+    maven {
+        name = "Shedaniel Maven"
+        url = "https://maven.shedaniel.me/"
+    }
+
+    maven {
+        name = "Architectury Maven"
+        url = "https://architectury.dev"
+    }
 }
 
 base {
@@ -135,6 +145,16 @@ dependencies {
     implementation 'org.jetbrains:annotations:24.0.0'
     api "org.appliedenergistics:appliedenergistics2:${project.ae2_version}:api"
     implementation "org.appliedenergistics:appliedenergistics2:${project.ae2_version}"
+
+    compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:16.0.799"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:16.0.799"
+
+    //rei runtime
+//    localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:16.0.799"
+//    localRuntime "dev.architectury:architectury-neoforge:13.0.8"
+//    localRuntime "me.shedaniel.cloth:cloth-config-neoforge:15.0.140"
+
+    //todo emi/jade
     //implementation "org.appliedenergistics:appliedenergistics2:${project.ae2_version}"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
