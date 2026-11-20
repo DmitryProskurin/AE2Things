@@ -62,6 +62,18 @@ repositories {
         name = "Sleeping Town"
         url = "https://repo.sleeping.town/"
     }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 base {
@@ -160,6 +172,8 @@ dependencies {
     compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${project.rei_version}"
     //emi
     compileOnly "dev.emi:emi-neoforge:${project.emi_version}+${project.minecraft_version}:api"
+    //jade
+    //compileOnly "maven.modrinth:jade:${project.jade_version}+neoforge"
 
     switch (project.recipe_viewer) {
         case "emi":
@@ -170,6 +184,8 @@ dependencies {
             break
     }
 
+    //localRuntime "maven.modrinth:pipez:neoforge-1.21.1-1.2.31"
+    localRuntime "maven.modrinth:jade:${project.jade_version}+neoforge"
     //implementation "org.appliedenergistics:appliedenergistics2:${project.ae2_version}"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
@@ -208,7 +224,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_version            : mod_version,
             ae2_version            : ae2_version,
             emi_version            : emi_version,
-            rei_version            : rei_version
+            rei_version            : rei_version,
+            jade_version           : jade_version
     ]
     inputs.properties replaceProperties
     expand replaceProperties

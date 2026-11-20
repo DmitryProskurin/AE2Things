@@ -1,5 +1,6 @@
 package io.github.projectet.ae2things;
 
+import appeng.api.AECapabilities;
 import appeng.api.storage.StorageCells;
 import appeng.api.upgrades.Upgrades;
 import appeng.core.definitions.AEItems;
@@ -12,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
@@ -40,6 +43,7 @@ public class AE2Things {
 
         modBus.addListener(AE2Things::initUpgrades);
         modBus.addListener(AE2Things::initStorageCells);
+        modBus.addListener(AE2Things::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(this::onServerLevelTickStart);
     }
@@ -64,5 +68,31 @@ public class AE2Things {
         }
 
         STORAGE_INSTANCE = StorageManager.getInstance(level.getServer());
+    }
+
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AE2TBlockEntities.CRYSTAL_GROWTH_BE.get(),
+                (be, side) -> side == null ? be.getInternalInventory().toItemHandler() : be.getExposedInventoryForSide(side).toItemHandler()
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AE2TBlockEntities.ADVANCED_INSCRIBER_BE.get(),
+                (be, side) -> side == null ? be.getInternalInventory().toItemHandler() : be.getExposedInventoryForSide(side).toItemHandler()
+        );
+
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                AE2TBlockEntities.CRYSTAL_GROWTH_BE.get(),
+                (be, side) -> be
+        );
+
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                AE2TBlockEntities.ADVANCED_INSCRIBER_BE.get(),
+                (be, side) -> be
+        );
     }
 }

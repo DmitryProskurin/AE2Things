@@ -1,7 +1,6 @@
 package io.github.projectet.ae2things.compat;
 
-import appeng.core.AppEng;
-
+import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.definitions.AE2TBlocks;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
@@ -36,7 +35,7 @@ public class CrystalGrowthRecipeCategory implements DisplayCategory<CrystalGrowt
     @Override
     public List<Widget> setupDisplay(CrystalGrowthRecipeDisplay display, Rectangle bounds) {
         List<Widget> result = new ArrayList();
-        var crystalGrowthUiResource = AppEng.makeId("textures/guis/crystal_growth_rei.png");
+        var crystalGrowthUiResource = AE2Things.id("textures/guis/crystal_growth_rei.png");
         var textureWidget = Widgets.createTexturedWidget(crystalGrowthUiResource, new Rectangle(bounds.getLocation().x, bounds.getLocation().y, 176, 66), 0,0);
         result.add(textureWidget);
 

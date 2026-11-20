@@ -343,7 +343,7 @@ public class BEAdvancedInscriber extends AENetworkedPoweredBlockEntity implement
             if (inv == topItemHandler)
                 top = stack;
 
-            for (var recipeHolder : InscriberRecipes.getRecipes(getLevel())) {
+            for (var recipeHolder : InscriberRecipes.getRecipes(level)) {
                 var recipe = recipeHolder.value();
                 if (!middle.isEmpty() && !recipe.getMiddleInput().test(middle)) {
                     continue;
