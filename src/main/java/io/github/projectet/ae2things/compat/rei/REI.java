@@ -1,4 +1,4 @@
-package io.github.projectet.ae2things.compat;
+package io.github.projectet.ae2things.compat.rei;
 
 import appeng.core.AppEng;
 import io.github.projectet.ae2things.AE2Things;

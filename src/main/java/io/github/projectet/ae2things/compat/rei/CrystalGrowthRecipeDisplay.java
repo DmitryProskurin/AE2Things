@@ -1,4 +1,4 @@
-package io.github.projectet.ae2things.compat;
+package io.github.projectet.ae2things.compat.rei;
 
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipe;
 

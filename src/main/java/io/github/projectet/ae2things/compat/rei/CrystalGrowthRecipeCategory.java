@@ -1,4 +1,4 @@
-package io.github.projectet.ae2things.compat;
+package io.github.projectet.ae2things.compat.rei;
 
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.definitions.AE2TBlocks;
