@@ -3,13 +3,24 @@ package io.github.projectet.ae2things.storage;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.GenericStack;
+import appeng.api.storage.cells.CellState;
 import appeng.api.storage.cells.IBasicCellItem;
 import appeng.api.storage.cells.ICellWorkbenchItem;
+import appeng.api.upgrades.IUpgradeInventory;
+import appeng.items.storage.StorageCellTooltipComponent;
 import appeng.me.cells.BasicCellHandler;
 import appeng.util.ConfigInventory;
 import com.google.common.base.Preconditions;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import io.github.projectet.ae2things.definitions.AE2TComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FastColor;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 
 public interface IDISKCellItem extends ICellWorkbenchItem {
@@ -68,12 +79,45 @@ public interface IDISKCellItem extends ICellWorkbenchItem {
     double getIdleDrain();
 
     ConfigInventory getConfigInventory(ItemStack is);
-
     /**
      * Convenient helper to append useful tooltip information.
      */
     default void addCellInformationToTooltip(ItemStack is, List<Component> lines) {
         Preconditions.checkArgument(is.getItem() == this);
         DISKCellHandler.INSTANCE.addCellInformationToTooltip(is, lines);
+    }
+
+    default Optional<TooltipComponent> buildCellTooltipImage(ItemStack stack, IUpgradeInventory upgrades) {
+        List<GenericStack> rawStacks = stack.getOrDefault(AE2TComponents.TOOLTIP_STACKS, List.of());
+        boolean hasMoreContent = rawStacks.size() > 5;
+        List<GenericStack> stacks = hasMoreContent ? rawStacks.subList(0, 5) : rawStacks;
+
+
+        List<ItemStack> upgradeStacks = new ArrayList<>();
+        for (ItemStack upgrade : upgrades) {
+            if (!upgrade.isEmpty()) {
+                upgradeStacks.add(upgrade);
+            }
+        }
+
+        if (stacks.isEmpty() && upgradeStacks.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new StorageCellTooltipComponent(upgradeStacks, stacks, hasMoreContent, true));
+    }
+
+    static int getLedColorByStoredItems(ItemStack stack) {
+        CellState cellState = CellState.EMPTY;
+        var cellInfo = stack.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+        if (cellInfo != DiskCellInfo.DEFAULT && stack.getItem() instanceof IDISKCellItem cellItem) {
+            if (cellInfo.storedItemsCount() > 0 && cellInfo.storedItemsCount() != cellItem.getBytes(stack)) {
+                cellState = CellState.NOT_EMPTY;
+            } else {
+                cellState = CellState.FULL;
+            }
+        }
+
+        return FastColor.ARGB32.opaque(cellState.getStateColor());
     }
 }

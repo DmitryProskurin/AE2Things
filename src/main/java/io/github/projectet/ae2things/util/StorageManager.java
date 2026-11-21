@@ -6,9 +6,12 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class StorageManager extends SavedData {
@@ -18,18 +21,22 @@ public class StorageManager extends SavedData {
     private static final String DISKDATA = "diskdata";
     private static final String DISKLIST = "disklist";
 
-    public HolderLookup.Provider Provider;
+    public final HolderLookup.Provider provider;
     private final Map<UUID, DataStorage> disks;
 
-    public StorageManager() {
+    public StorageManager(HolderLookup.Provider provider) {
+        Objects.requireNonNull(provider, "Argument cannot be null");
+
         disks = new HashMap<>();
-        this.setDirty();
+        this.provider = provider;
     }
 
     private StorageManager(Map<UUID, DataStorage> disks, HolderLookup.Provider provider) {
+        Objects.requireNonNull(provider, "'provider' cannot be null");
+        Objects.requireNonNull(disks, "'disks' cannot be null");
+
         this.disks = disks;
-        this.Provider = provider;
-        this.setDirty();
+        this.provider = provider;
     }
 
     @Override
@@ -88,13 +95,16 @@ public class StorageManager extends SavedData {
 
         updateDisk(diskID, diskToModify);
     }
-//https://github.com/AppliedEnergistics/Applied-Energistics-2/blob/8d4e1aecc4cc3f1c6ae334c746f684761c843313/src/main/java/appeng/core/AppEngBase.java#L258
-    public static StorageManager getInstance(MinecraftServer server) {
-        //what if over is not existed yet? Game is started in nether?
-        ServerLevel world = server.getLevel(ServerLevel.OVERWORLD);
-        if (world == null) { return null; }
+
+    @Nullable
+    public static StorageManager getInstance() {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null || !server.isSameThread()) {
+            return null;
+        }
+        ServerLevel world = server.overworld();
         return world.getDataStorage().computeIfAbsent(new SavedData.Factory<>(
-                StorageManager::new, StorageManager::readNbt),
+                () -> new StorageManager(world.registryAccess()), StorageManager::readNbt),
                 MANAGER_NAME);
     }
 }

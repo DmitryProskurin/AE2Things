@@ -7,23 +7,17 @@ import appeng.core.definitions.AEItems;
 import io.github.projectet.ae2things.definitions.*;
 import io.github.projectet.ae2things.recipe.CrystalGrowthRecipeStatic;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
-import io.github.projectet.ae2things.util.StorageManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @Mod(AE2Things.MOD_ID)
 public class AE2Things {
 
     public static final String MOD_ID = "ae2things";
-
-    public static StorageManager STORAGE_INSTANCE = new StorageManager();
 
     public static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID , path);
@@ -44,8 +38,6 @@ public class AE2Things {
         modBus.addListener(AE2Things::initUpgrades);
         modBus.addListener(AE2Things::initStorageCells);
         modBus.addListener(AE2Things::registerCapabilities);
-
-        NeoForge.EVENT_BUS.addListener(this::onServerLevelTickStart);
     }
 
     private static void initUpgrades(FMLCommonSetupEvent event) {
@@ -60,14 +52,6 @@ public class AE2Things {
         event.enqueueWork(()->{
             StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
         });
-    }
-
-    private void onServerLevelTickStart(LevelTickEvent.Pre event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) {
-            return;
-        }
-
-        STORAGE_INSTANCE = StorageManager.getInstance(level.getServer());
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

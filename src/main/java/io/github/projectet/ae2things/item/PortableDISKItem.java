@@ -7,24 +7,34 @@ import appeng.api.storage.StorageCells;
 import appeng.api.storage.cells.CellState;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.UpgradeInventories;
+import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
 import appeng.hooks.AEToolItem;
 import appeng.items.contents.CellConfig;
 import appeng.items.contents.PortableCellMenuHost;
-import appeng.items.materials.StorageComponentItem;
-import appeng.items.storage.StorageTier;
 import appeng.items.tools.powered.AbstractPortableCell;
 import appeng.menu.locator.ItemMenuHostLocator;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.util.ConfigInventory;
 import io.github.projectet.ae2things.AE2Things;
+import io.github.projectet.ae2things.definitions.AE2TComponents;
+import io.github.projectet.ae2things.definitions.AE2TItems;
+import io.github.projectet.ae2things.storage.DiskCellInfo;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
+import io.github.projectet.ae2things.util.StorageManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -32,23 +42,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class PortableDISKItem extends AbstractPortableCell implements IDISKCellItem, AEToolItem {
 
-    private final StorageTier tier;
+    private final int bytes;
+    private final ItemLike coreItem;
     private final AEKeyType keyType = AEKeyType.items();
 
-//    private final MenuType<?> menuType = MEStorageMenu.PORTABLE_ITEM_CELL_TYPE;
-
-//    public PortableDISKItem(StorageComponentItem item, MenuType<?> menuType, Properties props, int defaultColor) {
-//        super(menuType, props, defaultColor);
-//        this.item = item;
-//    }
-
-    public PortableDISKItem(StorageTier tier, Properties props) {
+    public PortableDISKItem(ItemLike coreItem, int kilobytes, Properties props) {
         super(MEStorageMenu.PORTABLE_ITEM_CELL_TYPE, props, 0xFF80caff);
-        this.tier = tier;
+        this.bytes = kilobytes * 1000;
+        this.coreItem = coreItem;
     }
 
     public ResourceLocation getRecipeId() {
@@ -60,84 +66,12 @@ public class PortableDISKItem extends AbstractPortableCell implements IDISKCellI
         return 80d + 80d * getUpgrades(stack).getInstalledUpgrades(AEItems.ENERGY_CARD);
     }
 
-//    @Override
-//    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-//        return context.isSecondaryUseActive()
-//                && this.disassembleDrive(stack, context.getLevel(), context.getPlayer())
-//                ? InteractionResult.sidedSuccess(context.getLevel().isClientSide())
-//                : InteractionResult.PASS;
-//    }
-
-    /*@Nullable
-    @Override
-    public PortableDISKMenuHost getMenuHost(Player player, int inventorySlot, ItemStack stack, @Nullable BlockPos pos) {
-        return new PortableDISKMenuHost(player, inventorySlot, this, stack, (p, sm) -> openFromInventory(p, inventorySlot));
-    }*/
-
     @Override
     public @Nullable PortableCellMenuHost<?> getMenuHost(Player player, ItemMenuHostLocator locator, @Nullable BlockHitResult hitResult) {
         //return new PortableDISKMenuHost(player, inventorySlot, this, stack, (p, sm) -> openFromInventory(p, inventorySlot));
         return new PortableCellMenuHost<>(this, player, locator,
                 (p, sm) -> openFromInventory(p, locator, true));
     }
-
-    /*private boolean disassembleDrive(ItemStack stack, Level level, Player player) {
-        if (!AEConfig.instance().isPortableCellDisassemblyEnabled()) {
-            return false;
-        }
-
-        // We refund the crafting recipe ingredients (the first one each)
-        var recipeHolder = level.getRecipeManager().byKey(getRecipeId()).orElse(null);
-        if (recipeHolder == null) {
-            AELog.debug("Cannot disassemble portable cell because it's crafting recipe is null: %s",
-                    getRecipeId());
-            return false;
-        }
-        if (!(recipeHolder.value() instanceof CraftingRecipe craftingRecipe)) {
-            AELog.debug("Cannot disassemble portable cell because it's crafting recipe doesn't exist: %s",
-                    getRecipeId());
-            return false;
-        }
-
-        if (level.isClientSide()) {
-            return true;
-        }
-
-        var playerInventory = player.getInventory();
-        if (playerInventory.getSelected() != stack) {
-            return false;
-        }
-
-        var inv = DISKCellHandler.INSTANCE.getCellInventory(stack, null);
-        if (inv == null) {
-            return false;
-        }
-
-        if (inv.getAvailableStacks().isEmpty()) {
-            playerInventory.setItem(playerInventory.selected, ItemStack.EMPTY);
-
-            var remainingEnergy = getAECurrentPower(stack);
-            for (var ingredient : craftingRecipe.getIngredients()) {
-                var ingredientStack = ingredient.getItems()[0].copy();
-
-                // Dump remaining energy into whatever can accept it
-                if (remainingEnergy > 0 && ingredientStack.getItem() instanceof EnergyCellBlockItem chargeable) {
-                    remainingEnergy = chargeable.injectAEPower(ingredientStack, remainingEnergy, Actionable.MODULATE);
-                }
-
-                playerInventory.placeItemBackInInventory(ingredientStack);
-            }
-
-            // Drop upgrades
-            for (var upgrade : getUpgrades(stack)) {
-                playerInventory.placeItemBackInInventory(upgrade);
-            }
-        } else {
-            player.sendSystemMessage(PlayerMessages.OnlyEmptyCellsCanBeDisassembled.text());
-        }
-
-        return true;
-    }*/
 
     @Override
     public AEKeyType getKeyType() {
@@ -148,26 +82,16 @@ public class PortableDISKItem extends AbstractPortableCell implements IDISKCellI
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines,
                                 TooltipFlag advancedTooltips) {
-        super.appendHoverText(stack, context, lines, advancedTooltips);
         addCellInformationToTooltip(stack, lines);
     }
 
-//    @Override
-//    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-//        if (!InteractionUtil.isInAlternateUseMode(player)
-//                || !disassembleDrive(player.getItemInHand(hand), level, player)) {
-//            if (!level.isClientSide()) {
-//                MenuOpener.open(getMenuType(), player, MenuLocators.forHand(player, hand));
-//            }
-//        }
-//        return new InteractionResultHolder<>(InteractionResult.sidedSuccess(level.isClientSide()),
-//                player.getItemInHand(hand));
-//    }
+    @Override
+    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+        return buildCellTooltipImage(stack, this.getUpgrades(stack));
+    }
 
     @Override
-    public int getBytes(ItemStack cellItem) {
-        return this.tier.bytes() / 2;
-    }
+    public int getBytes(ItemStack cellItem) { return this.bytes; }
 
     @Override
     public double getIdleDrain() {
@@ -207,14 +131,76 @@ public class PortableDISKItem extends AbstractPortableCell implements IDISKCellI
         is.set(AEComponents.STORAGE_CELL_FUZZY_MODE, fzMode);
     }
 
-    //overrideStackedOnOther and insert from base class instead of own
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (player.isShiftKeyDown() && disassembleDrive(player.getItemInHand(hand), level, player)) {
+            return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide());
+        }
+        return super.use(level, player, hand);
+    }
 
-//    public MenuType<?> getMenuType() {
-//        return menuType;
-//    }
+    @Override
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player != null && player.isShiftKeyDown() && disassembleDrive(stack, context.getLevel(), player)) {
+            return InteractionResult.sidedSuccess(context.getLevel().isClientSide());
+        }
+        return super.onItemUseFirst(stack, context);
+    }
+
+    private boolean disassembleDrive(ItemStack stack, Level level, Player player) {
+        if (level.isClientSide()) {
+            var info = stack.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+            if (info != DiskCellInfo.DEFAULT && info.storedItemsCount() > 0) {
+                return false;
+            }
+            return true;
+        }
+
+        var cellInventory = StorageCells.getCellInventory(stack, null);
+        if (cellInventory == null || !cellInventory.getAvailableStacks().isEmpty()) {
+            return false;
+        }
+
+        var info = stack.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+        if (!info.isDefault()) {
+            var manager = StorageManager.getInstance();
+            if (manager != null) {
+                manager.removeDisk(info.uuidAsUUID());
+            }
+        }
+
+        Inventory playerInventory = player.getInventory();
+        if (playerInventory.getSelected() != stack) {
+            return false;
+        }
+
+        playerInventory.setItem(playerInventory.selected, ItemStack.EMPTY);
+
+        playerInventory.placeItemBackInInventory(new ItemStack(this.coreItem));
+        playerInventory.placeItemBackInInventory(new ItemStack(AEBlocks.ME_CHEST));
+        playerInventory.placeItemBackInInventory(new ItemStack(AEBlocks.ENERGY_CELL));
+        playerInventory.placeItemBackInInventory(new ItemStack(AE2TItems.DISK_HOUSING));
+        for (ItemStack upgrade : this.getUpgrades(stack)) {
+            playerInventory.placeItemBackInInventory(upgrade);
+        }
+
+        return true;
+    }
 
     public static int getColor(ItemStack stack, int tintIndex) {
-        int color = AbstractPortableCell.getColor(stack, tintIndex);
-        return FastColor.ARGB32.opaque(color);
+        if (tintIndex == 1 && stack.getItem() instanceof AbstractPortableCell portableCell) {
+            // If the cell is out of power, always display empty
+            if (portableCell.getAECurrentPower(stack) <= 0) {
+                return CellState.ABSENT.getStateColor();
+            }
+
+            return IDISKCellItem.getLedColorByStoredItems(stack);
+        } else if (tintIndex == 2 && stack.getItem() instanceof AbstractPortableCell portableCell) {
+            return portableCell.getColor(stack);
+        } else {
+            // White
+            return 0xFFFFFFFF;
+        }
     }
 }

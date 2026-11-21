@@ -8,6 +8,7 @@ import io.github.projectet.ae2things.definitions.AE2TItems;
 import io.github.projectet.ae2things.storage.DiskCellInfo;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
 import io.github.projectet.ae2things.definitions.AE2TComponents;
+import io.github.projectet.ae2things.util.StorageManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -59,7 +60,7 @@ public class Command {
 
     private static int spawnDrive(CommandContext<CommandSourceStack> context, UUID uuid) throws CommandSyntaxException {
         Player player = context.getSource().getPlayerOrException();
-        var storageInstance = AE2Things.STORAGE_INSTANCE;
+        var storageInstance = StorageManager.getInstance();
         if (storageInstance == null) {
             context.getSource().sendFailure(Component.literal("STORAGE_INSTANCE is null"));
             return 1;
@@ -69,8 +70,6 @@ public class Command {
             ItemStack stack = new ItemStack(AE2TItems.DISK_DRIVE_64K);
             CompoundTag nbt = new CompoundTag();
 
-//            nbt.putUUID(Constants.DISKUUID, uuid);
-//            nbt.putLong(DISKCellInventory.ITEM_COUNT_TAG, storageInstance.getOrCreateDisk(uuid).itemCount);
             stack.set(AE2TComponents.DISK_CELL_INFO, new DiskCellInfo(uuid.toString(), storageInstance.getOrCreateDisk(uuid).itemCount));
 
             player.addItem(stack);

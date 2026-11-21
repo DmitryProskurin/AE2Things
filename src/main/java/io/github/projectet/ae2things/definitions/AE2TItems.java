@@ -52,11 +52,11 @@ public class AE2TItems {
     public static final ItemDefinition<DISKDrive> DISK_DRIVE_64K = storageItem("Disk Drive 64k", "disk_drive_64k", p -> new DISKDrive(AEItems.CELL_COMPONENT_64K, 64, 2.0f, STACK_ITEM_PROPERTIES));
     public static final ItemDefinition<DISKDrive> DISK_DRIVE_256K = storageItem("Disk Drive 256k", "disk_drive_256k", p -> new DISKDrive(AEItems.CELL_COMPONENT_256K, 256, 2.5f, STACK_ITEM_PROPERTIES));
 
-    public static final ItemDefinition<Item> PORTABLE_DISK_1K = storageItem("Portable Disk 1k", "portable_disk_1k", p -> new PortableDISKItem(StorageTier.SIZE_1K, ONE_ITEM_PROPERTIES));
-    public static final ItemDefinition<Item> PORTABLE_DISK_4K = storageItem("Portable Disk 4k", "portable_disk_4k", p -> new PortableDISKItem(StorageTier.SIZE_4K, ONE_ITEM_PROPERTIES));
-    public static final ItemDefinition<Item> PORTABLE_DISK_16K = storageItem("Portable Disk 16k", "portable_disk_16k", p -> new PortableDISKItem(StorageTier.SIZE_16K, ONE_ITEM_PROPERTIES));
-    public static final ItemDefinition<Item> PORTABLE_DISK_64K = storageItem("Portable Disk 64k", "portable_disk_64k", p -> new PortableDISKItem(StorageTier.SIZE_64K, ONE_ITEM_PROPERTIES));
-    public static final ItemDefinition<Item> PORTABLE_DISK_256K = storageItem("Portable Disk 256k","portable_disk_256k", p -> new PortableDISKItem(StorageTier.SIZE_256K, ONE_ITEM_PROPERTIES));
+    public static final ItemDefinition<Item> PORTABLE_DISK_1K = storageItem("Portable Disk 1k", "portable_disk_1k", p -> new PortableDISKItem(AEItems.CELL_COMPONENT_1K, 1, ONE_ITEM_PROPERTIES));
+    public static final ItemDefinition<Item> PORTABLE_DISK_4K = storageItem("Portable Disk 4k", "portable_disk_4k", p -> new PortableDISKItem(AEItems.CELL_COMPONENT_4K, 4, ONE_ITEM_PROPERTIES));
+    public static final ItemDefinition<Item> PORTABLE_DISK_16K = storageItem("Portable Disk 16k", "portable_disk_16k", p -> new PortableDISKItem(AEItems.CELL_COMPONENT_16K, 16, ONE_ITEM_PROPERTIES));
+    public static final ItemDefinition<Item> PORTABLE_DISK_64K = storageItem("Portable Disk 64k", "portable_disk_64k", p -> new PortableDISKItem(AEItems.CELL_COMPONENT_64K, 64, ONE_ITEM_PROPERTIES));
+    public static final ItemDefinition<Item> PORTABLE_DISK_256K = storageItem("Portable Disk 256k","portable_disk_256k", p -> new PortableDISKItem(AEItems.CELL_COMPONENT_256K,256, ONE_ITEM_PROPERTIES));
 
     public static void initUpgrades(){
         for(var itemDefinition : Collections.unmodifiableList(STORAGE_ITEMS)) {

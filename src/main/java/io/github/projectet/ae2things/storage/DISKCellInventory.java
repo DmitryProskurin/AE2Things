@@ -4,10 +4,7 @@ import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
 import appeng.api.config.IncludeExclude;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.*;
 import appeng.api.storage.cells.CellState;
 import appeng.api.storage.cells.ISaveProvider;
 import appeng.api.storage.cells.StorageCell;
@@ -29,6 +26,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -39,7 +37,6 @@ public class DISKCellInventory implements StorageCell {
     private final AEKeyType keyType;
     private IPartitionList partitionList;
     private IncludeExclude partitionListMode;
-    private int storedItems;
     private long storedItemCount;
     private Object2LongMap<AEKey> storedAmounts;
     private final ItemStack i;
@@ -76,20 +73,19 @@ public class DISKCellInventory implements StorageCell {
         this.hasVoidUpgrade = upgrades.isInstalled(AEItems.VOID_CARD);
     }
 
-    private DataStorage getDiskStorage() {
-        if(getDiskUUID() != null)
-            return getStorageInstance().getOrCreateDisk(getDiskUUID());
-        else
-            return DataStorage.EMPTY;
-    }
-
     private void initData() {
-        if(hasDiskUUID()) {
-            this.storedItems = getDiskStorage().stackAmounts.length;
-            this.storedItemCount = getDiskStorage().itemCount;
+        var cellInfo = i.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+        if(cellInfo != DiskCellInfo.DEFAULT) {
+            var instance = getStorageInstance();
+
+            if (instance == null){
+                this.storedItemCount = cellInfo.storedItemsCount();
+            } else {
+                var dataStorage = instance.getOrCreateDisk(cellInfo.uuidAsUUID());
+                this.storedItemCount = dataStorage.itemCount;
+            }
         }
         else {
-            this.storedItems = 0;
             this.storedItemCount = 0;
             getCellItems();
         }
@@ -130,16 +126,6 @@ public class DISKCellInventory implements StorageCell {
         return CellState.FULL;
     }
 
-    public CellState getClientStatus() {
-        if (this.getNbtItemCount() == 0) {
-            return CellState.EMPTY;
-        }
-        if ((getNbtItemCount() > 0 && getNbtItemCount() != getTotalBytes())) {
-            return CellState.NOT_EMPTY;
-        }
-        return CellState.FULL;
-    }
-
     @Override
     public double getIdleDrain() {
         return this.cellType.getIdleDrain();
@@ -160,6 +146,7 @@ public class DISKCellInventory implements StorageCell {
 
             storageInstance.removeDisk(getDiskUUID());
             i.remove(AE2TComponents.DISK_CELL_INFO);
+            i.remove(AE2TComponents.TOOLTIP_STACKS);
             initData();
             return;
         }
@@ -173,30 +160,34 @@ public class DISKCellInventory implements StorageCell {
         // add new pretty stuff...
         var amounts = new LongArrayList(storedAmounts.size());
         var keys = new ListTag();
+        var tooltipStacks = new ArrayList<GenericStack>(5);
 
         for (var entry : this.storedAmounts.object2LongEntrySet()) {
             long amount = entry.getLongValue();
 
             if (amount > 0) {
                 itemCount += amount;
-                //самая жёсткая проблема, сюда надо как-то запихнуть level().registryAccess().
-                keys.add(entry.getKey().toTagGeneric(storageInstance.Provider));
+                var key = entry.getKey();
+                keys.add(key.toTagGeneric(storageInstance.provider));
                 amounts.add(amount);
+
+                if (tooltipStacks.size() < 5) {
+                    tooltipStacks.add(new GenericStack(key, amount));
+                }
             }
         }
 
         var uuid = currentCellInfo.uuidAsUUID();
         if (keys.isEmpty()) {
             storageInstance.updateDisk(uuid, new DataStorage());
+            i.remove(AE2TComponents.TOOLTIP_STACKS);
         } else {
             storageInstance.modifyDisk(uuid, keys, amounts.toArray(new long[0]), itemCount);
+            i.set(AE2TComponents.TOOLTIP_STACKS, tooltipStacks);
         }
-
-        this.storedItems = (short) this.storedAmounts.size();
 
         this.storedItemCount = itemCount;
         i.set(AE2TComponents.DISK_CELL_INFO, new DiskCellInfo(currentCellInfo.uuid(), itemCount));
-//        i.getOrCreateTag().putLong(DISKCellInventory.ITEM_COUNT_TAG, itemCount);
 
         this.isPersisted = true;
     }
@@ -280,7 +271,8 @@ public class DISKCellInventory implements StorageCell {
     private void loadCellItems() {
         boolean corruptedTag = false;
 
-        if(!hasDiskUUID()) {
+        var cellInfo = i.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+        if(cellInfo == DiskCellInfo.DEFAULT) {
             return;
         }
 
@@ -289,8 +281,9 @@ public class DISKCellInventory implements StorageCell {
             return;
         }
 
-        var amounts = getDiskStorage().stackAmounts;
-        var tags = getDiskStorage().stackKeys;
+        var diskStorage = storageInstance.getOrCreateDisk(cellInfo.uuidAsUUID());
+        var amounts = diskStorage.stackAmounts;
+        var tags = diskStorage.stackKeys;
         if (amounts.length != tags.size()) {
             AELog.warn("Loading storage cell with mismatched amounts/tags: %d != %d",
                     amounts.length, tags.size());
@@ -298,7 +291,7 @@ public class DISKCellInventory implements StorageCell {
 
         for (int i = 0; i < amounts.length; i++) {
             var amount = amounts[i];
-            AEKey key = AEKey.fromTagGeneric(storageInstance.Provider, tags.getCompound(i));
+            AEKey key = AEKey.fromTagGeneric(storageInstance.provider, tags.getCompound(i));
 
             if (amount <= 0 || key == null) {
                 corruptedTag = true;
@@ -313,12 +306,16 @@ public class DISKCellInventory implements StorageCell {
     }
 
     private StorageManager getStorageInstance() {
-        return AE2Things.STORAGE_INSTANCE;
+        var result = StorageManager.getInstance();
+        if (result == null){
+            var a=1;
+            return result;
+        }
+        return result;
     }
 
     protected void saveChanges() {
         // recalculate values
-        this.storedItems = this.storedAmounts.size();
         this.storedItemCount = 0;
         for (var storedAmount : this.storedAmounts.values()) {
             this.storedItemCount += storedAmount;
@@ -426,17 +423,8 @@ public class DISKCellInventory implements StorageCell {
         return this.getTotalBytes() - this.getStoredItemCount();
     }
 
-    public long getNbtItemCount() {
-        var cellInfo = i.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
-        return cellInfo.storedItemsCount();
-    }
-
     public long getStoredItemCount() {
         return this.storedItemCount;
-    }
-
-    public long getStoredItemTypes() {
-        return this.storedItems;
     }
 
     public boolean canHoldNewItem() {

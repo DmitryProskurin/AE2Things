@@ -1,11 +1,9 @@
 package io.github.projectet.ae2things.storage;
 
-import appeng.api.config.IncludeExclude;
 import appeng.api.storage.cells.ICellHandler;
 import appeng.api.storage.cells.ISaveProvider;
-import appeng.core.localization.GuiText;
 import appeng.core.localization.Tooltips;
-import io.github.projectet.ae2things.item.DISKDrive;
+import io.github.projectet.ae2things.definitions.AE2TComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -25,29 +23,14 @@ public class DISKCellHandler implements ICellHandler {
     public DISKCellInventory getCellInventory(ItemStack is, ISaveProvider container) {
         return DISKCellInventory.createInventory(is, container);
     }
-
+    //AE2 Things shows the tooltip based on stack data components.
     public void addCellInformationToTooltip(ItemStack stack, List<Component> lines) {
-        var handler = getCellInventory(stack, null);
+        var cellInfo = stack.getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
+        if (cellInfo == DiskCellInfo.DEFAULT) { return; }
 
-        if(handler == null)
-            return;
-
-        if(handler.hasDiskUUID()) {
-            lines.add(Component.literal("Disk UUID: ").withStyle(ChatFormatting.GRAY).append(Component.literal(handler.getDiskUUID().toString()).withStyle(ChatFormatting.AQUA)));
-            lines.add(Tooltips.bytesUsed(handler.getNbtItemCount(), handler.getTotalBytes()));
-        }
-
-        if (handler.isPreformatted()) {
-            var list = (handler.getPartitionListMode() == IncludeExclude.WHITELIST ? GuiText.Included
-                    : GuiText.Excluded)
-                    .text();
-
-            if (handler.isFuzzy()) {
-                lines.add(GuiText.Partitioned.withSuffix(" - ").append(list).append(" ").append(GuiText.Fuzzy.text()));
-            } else {
-                lines.add(
-                        GuiText.Partitioned.withSuffix(" - ").append(list).append(" ").append(GuiText.Precise.text()));
-            }
+        lines.add(Component.literal("Disk UUID: ").withStyle(ChatFormatting.GRAY).append(Component.literal(cellInfo.uuid()).withStyle(ChatFormatting.AQUA)));
+        if (stack.getItem() instanceof IDISKCellItem cellItem) {
+            lines.add(Tooltips.bytesUsed(cellInfo.storedItemsCount(), cellItem.getBytes(stack)));
         }
     }
 }

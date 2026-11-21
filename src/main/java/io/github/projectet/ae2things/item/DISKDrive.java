@@ -3,7 +3,6 @@ package io.github.projectet.ae2things.item;
 import appeng.api.config.FuzzyMode;
 import appeng.api.ids.AEComponents;
 import appeng.api.stacks.AEKeyType;
-import appeng.api.storage.cells.CellState;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.UpgradeInventories;
 import appeng.hooks.AEToolItem;
@@ -11,16 +10,15 @@ import appeng.items.contents.CellConfig;
 import appeng.util.ConfigInventory;
 import appeng.util.InteractionUtil;
 import io.github.projectet.ae2things.definitions.AE2TItems;
-import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FastColor;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -30,6 +28,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static appeng.api.storage.StorageCells.getCellInventory;
@@ -137,16 +136,18 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Deep Item Storage disK - Storage for dummies").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+        tooltipComponents.add(Component.translatable("gui.ae2things.disk_abbr").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
         addCellInformationToTooltip(stack, tooltipComponents);
+    }
+
+    @Override
+    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+        return buildCellTooltipImage(stack, this.getUpgrades(stack));
     }
 
     public static int getColor(ItemStack stack, int tintIndex) {
         if (tintIndex == 1) {
-            // Determine LED color
-            var cellInv = DISKCellHandler.INSTANCE.getCellInventory(stack, null);
-            var cellStatus = cellInv != null ? cellInv.getClientStatus() : CellState.EMPTY;
-            return FastColor.ARGB32.opaque(cellStatus.getStateColor());
+            return IDISKCellItem.getLedColorByStoredItems(stack);
         } else {
             // White
             return 0xFFFFFFFF;

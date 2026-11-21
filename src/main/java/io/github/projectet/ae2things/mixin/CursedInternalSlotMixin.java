@@ -5,6 +5,7 @@ import io.github.projectet.ae2things.storage.DISKCellInventory;
 import io.github.projectet.ae2things.storage.DiskCellInfo;
 import io.github.projectet.ae2things.definitions.AE2TComponents;
 import io.github.projectet.ae2things.util.DataStorage;
+import io.github.projectet.ae2things.util.StorageManager;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -48,15 +49,16 @@ public abstract class CursedInternalSlotMixin {
         Slot i = this.slots.get(slotIndex);
         if(DISKCellInventory.hasDiskUUID(i.getItem())) {
                 var itemCellInfo = i.getItem().getOrDefault(AE2TComponents.DISK_CELL_INFO, DiskCellInfo.DEFAULT);
-                if (itemCellInfo.isDefault() || AE2Things.STORAGE_INSTANCE == null)
+                var storageManager = StorageManager.getInstance();
+                if (itemCellInfo.isDefault() || storageManager == null)
                     return;
 
-                DataStorage storage = AE2Things.STORAGE_INSTANCE.getOrCreateDisk(itemCellInfo.uuidAsUUID());
+                DataStorage storage = storageManager.getOrCreateDisk(itemCellInfo.uuidAsUUID());
                 ItemStack newStack = new ItemStack(i.getItem().getItem());
                 //idk. id rematch?
                 UUID id = UUID.randomUUID();
                 newStack.set(AE2TComponents.DISK_CELL_INFO, new DiskCellInfo(id.toString(), storage.itemCount));
-                AE2Things.STORAGE_INSTANCE.updateDisk(id, storage);
+                storageManager.updateDisk(id, storage);
 
                 newStack.setCount(newStack.getMaxStackSize());
                 this.setCarried(newStack);

@@ -17,6 +17,7 @@
   "gui.ae2things.crystal_growth": "Crystal Growth Chamber",
   "gui.ae2things.upgrade.portabledisk": "Portable DISKs",
   "gui.ae2things.upgrade.disk": "ME DISKs",
+  "gui.ae2things.disk_abbr": "Deep Item Storage disK - Storage for dummies",
   "command.ae2things.recover_success": "%s has recovered a DISK Drive with the UUID of [%s].",
   "command.ae2things.recover_fail": "Failed to recover DISK Drive: UUID [%s] does not exist.",
   "command.ae2things.getuuid_success": "UUID of given DISK is: [%s]",
