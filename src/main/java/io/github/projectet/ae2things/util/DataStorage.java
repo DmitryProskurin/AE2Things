@@ -13,6 +13,7 @@ public class DataStorage {
     public static final DataStorage EMPTY = new DataStorage();
 
     public ListTag stackKeys;
+    //not used in inventory, may be later...
     public long[] stackAmounts;
     public long itemCount;
 

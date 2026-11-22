@@ -23,10 +23,12 @@ public final class AE2TComponents
                     "disk_cell_info",
                     builder -> builder.persistent(CODEC).networkSynchronized(STREAM_CODEC));
 
+    public static final int MAX_TOOLTIP_STACKS_COUNT = 6;
+
     public static final DataComponentType<List<GenericStack>> TOOLTIP_STACKS =
             register("tooltip_stacks", builder -> builder
                     .persistent(GenericStack.CODEC.listOf())
-                    .networkSynchronized(GenericStack.STREAM_CODEC.apply(ByteBufCodecs.list(6))));
+                    .networkSynchronized(GenericStack.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_TOOLTIP_STACKS_COUNT))));
 
     private static <T> DataComponentType<T> register(String name, Consumer<DataComponentType.Builder<T>> customizer) {
         var builder = DataComponentType.<T>builder();

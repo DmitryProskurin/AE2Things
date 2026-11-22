@@ -22,5 +22,6 @@
   "command.ae2things.recover_fail": "Failed to recover DISK Drive: UUID [%s] does not exist.",
   "command.ae2things.getuuid_success": "UUID of given DISK is: [%s]",
   "command.ae2things.getuuid_fail_nouuid": "Error, given DISK is empty/no uuid found.",
-  "command.ae2things.getuuid_fail_notdisk": "Error, given item is not a DISK."
+  "command.ae2things.getuuid_fail_notdisk": "Error, given item is not a DISK.",
+  "fml.menu.mods.info.description.ae2things": "Neat little additions to AE2: Crystal Growth Chamber, storage DISK(portable also) without type number limitations."
 }

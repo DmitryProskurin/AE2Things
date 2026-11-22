@@ -89,8 +89,9 @@ public interface IDISKCellItem extends ICellWorkbenchItem {
 
     default Optional<TooltipComponent> buildCellTooltipImage(ItemStack stack, IUpgradeInventory upgrades) {
         List<GenericStack> rawStacks = stack.getOrDefault(AE2TComponents.TOOLTIP_STACKS, List.of());
-        boolean hasMoreContent = rawStacks.size() > 5;
-        List<GenericStack> stacks = hasMoreContent ? rawStacks.subList(0, 5) : rawStacks;
+        final var trimCount = AE2TComponents.MAX_TOOLTIP_STACKS_COUNT - 1;
+        boolean hasMoreContent = rawStacks.size() > trimCount;
+        List<GenericStack> stacks = hasMoreContent ? rawStacks.subList(0, trimCount) : rawStacks;
 
 
         List<ItemStack> upgradeStacks = new ArrayList<>();

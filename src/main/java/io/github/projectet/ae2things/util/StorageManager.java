@@ -17,7 +17,7 @@ import java.util.UUID;
 public class StorageManager extends SavedData {
 
     private static final String DISKUUID = "diskuuid";
-    private static final String MANAGER_NAME = "disk_manager";
+    private static final String MANAGER_NAME = "ae2things_disk_manager";
     private static final String DISKDATA = "diskdata";
     private static final String DISKLIST = "disklist";
 

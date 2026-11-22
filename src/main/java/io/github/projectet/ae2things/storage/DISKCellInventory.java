@@ -26,9 +26,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class DISKCellInventory implements StorageCell {
 
@@ -160,7 +158,11 @@ public class DISKCellInventory implements StorageCell {
         // add new pretty stuff...
         var amounts = new LongArrayList(storedAmounts.size());
         var keys = new ListTag();
-        var tooltipStacks = new ArrayList<GenericStack>(5);
+
+        var topHeap = new PriorityQueue<GenericStack>(
+                AE2TComponents.MAX_TOOLTIP_STACKS_COUNT,
+                Comparator.comparingLong(GenericStack::amount)
+        );
 
         for (var entry : this.storedAmounts.object2LongEntrySet()) {
             long amount = entry.getLongValue();
@@ -171,8 +173,11 @@ public class DISKCellInventory implements StorageCell {
                 keys.add(key.toTagGeneric(storageInstance.provider));
                 amounts.add(amount);
 
-                if (tooltipStacks.size() < 5) {
-                    tooltipStacks.add(new GenericStack(key, amount));
+                if (topHeap.size() < AE2TComponents.MAX_TOOLTIP_STACKS_COUNT) {
+                    topHeap.offer(new GenericStack(key, amount));
+                } else if (amount > topHeap.peek().amount()) {
+                    topHeap.poll();
+                    topHeap.offer(new GenericStack(key, amount));
                 }
             }
         }
@@ -183,6 +188,13 @@ public class DISKCellInventory implements StorageCell {
             i.remove(AE2TComponents.TOOLTIP_STACKS);
         } else {
             storageInstance.modifyDisk(uuid, keys, amounts.toArray(new long[0]), itemCount);
+
+            var tooltipStacks = new ArrayList<GenericStack>(topHeap.size());
+            while (!topHeap.isEmpty()) {
+                tooltipStacks.add(topHeap.poll());
+            }
+            Collections.reverse(tooltipStacks);
+
             i.set(AE2TComponents.TOOLTIP_STACKS, tooltipStacks);
         }
 
